@@ -50,9 +50,33 @@ public struct ContentView: View {
         )
     }
 
+    private func closeUntouchedUntitledDocuments() {
+        for doc in NSDocumentController.shared.documents {
+            if doc.fileURL == nil && !doc.isDocumentEdited {
+                doc.close()
+            }
+        }
+        for win in NSApp.windows {
+            let title = win.title.trimmingCharacters(in: .whitespaces)
+            if (title == "Ohne Titel" || title == "Untitled") && !win.isDocumentEdited {
+                win.close()
+            }
+        }
+    }
+
     public var body: some View {
         EditorView(text: $document.text, isMarkdown: isMarkdown, settings: settings)
             .frame(minWidth: 320, idealWidth: 375, minHeight: 480, idealHeight: 664)
+            .onAppear {
+                if fileURL != nil {
+                    DispatchQueue.main.async {
+                        closeUntouchedUntitledDocuments()
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        closeUntouchedUntitledDocuments()
+                    }
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .iTextPrintRequested)) { _ in
                 if controlActiveState == .key {
                     triggerPrint()
