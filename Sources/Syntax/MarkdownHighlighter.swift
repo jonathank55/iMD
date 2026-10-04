@@ -575,7 +575,6 @@ public final class MarkdownHighlighter {
                     lineText: lineText,
                     lineRange: lineRange,
                     attributed: attributed,
-                    fontSize: fontSize,
                     lineSpacing: lineSpacing,
                     secondaryColor: secondaryColor
                 )
@@ -635,13 +634,11 @@ public final class MarkdownHighlighter {
                 }
                 let headingFont = Self.resolveFont(family: fontFamily, size: fontSize + bonus, bold: true)
                 attributed.addAttribute(.font, value: headingFont, range: textRange)
-                let headingStyle = NSMutableParagraphStyle()
-                headingStyle.alignment = .left
-                headingStyle.hyphenationFactor = 0.0
-                let headingScale = CGFloat((fontSize + bonus) / max(1.0, fontSize))
-                let baseBonusSpacing = CGFloat(bonus * 0.25)
-                headingStyle.lineSpacing = CGFloat(lineSpacing) * headingScale + baseBonusSpacing
-                headingStyle.lineBreakStrategy = .pushOut
+                let headingStyle = Self.makeParagraphStyle(
+                    isJustified: false,
+                    isHyphenationEnabled: false,
+                    lineSpacing: lineSpacing
+                )
                 attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
                 return true
             }
@@ -663,11 +660,11 @@ public final class MarkdownHighlighter {
         // Echte Trennlinie: Rohzeichen unsichtbar, Linie wird vom iTextLayoutManager gezeichnet
         attributed.addAttribute(.foregroundColor, value: NSColor.clear, range: lineRange)
         attributed.addAttribute(.iTextRule, value: true, range: lineRange)
-        let ruleStyle = NSMutableParagraphStyle()
-        ruleStyle.alignment = .left
-        ruleStyle.hyphenationFactor = 0.0
-        ruleStyle.lineSpacing = CGFloat(lineSpacing)
-        ruleStyle.lineBreakStrategy = .pushOut
+        let ruleStyle = Self.makeParagraphStyle(
+            isJustified: false,
+            isHyphenationEnabled: false,
+            lineSpacing: lineSpacing
+        )
         attributed.addAttribute(.paragraphStyle, value: ruleStyle, range: lineRange)
         return true
     }
@@ -1103,7 +1100,6 @@ public final class MarkdownHighlighter {
         lineText: String,
         lineRange: NSRange,
         attributed: NSMutableAttributedString,
-        fontSize: Double,
         lineSpacing: Double,
         secondaryColor: PlatformColor
     ) {
@@ -1133,22 +1129,11 @@ public final class MarkdownHighlighter {
             if afterHashIndex < lineText.endIndex && lineText[afterHashIndex] == " " {
                 let prefixRange = NSRange(location: lineRange.location, length: count + 1)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: prefixRange)
-                let bonus: Double
-                switch count {
-                case 1: bonus = 6.0
-                case 2: bonus = 4.0
-                case 3: bonus = 2.5
-                case 4: bonus = 1.5
-                case 5: bonus = 0.8
-                default: bonus = 0.4
-                }
-                let headingStyle = NSMutableParagraphStyle()
-                headingStyle.alignment = .left
-                headingStyle.hyphenationFactor = 0.0
-                let headingScale = CGFloat((fontSize + bonus) / max(1.0, fontSize))
-                let baseBonusSpacing = CGFloat(bonus * 0.25)
-                headingStyle.lineSpacing = CGFloat(lineSpacing) * headingScale + baseBonusSpacing
-                headingStyle.lineBreakStrategy = .pushOut
+                let headingStyle = Self.makeParagraphStyle(
+                    isJustified: false,
+                    isHyphenationEnabled: false,
+                    lineSpacing: lineSpacing
+                )
                 attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
             }
             return
