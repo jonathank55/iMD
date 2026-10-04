@@ -193,7 +193,7 @@ public struct iTextCommands: Commands {
 
             Divider()
 
-            Toggle("Blocksatz (Typst)", isOn: $settings.isJustified)
+            Toggle("Blocksatz", isOn: $settings.isJustified)
             Toggle("Automatische Silbentrennung", isOn: $settings.isHyphenationEnabled)
             Toggle("Obsidian Live-Vorschau", isOn: $settings.isMarkdownHighlightingEnabled)
 

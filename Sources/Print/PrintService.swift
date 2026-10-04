@@ -170,7 +170,6 @@ public final class PrintService {
         let justifyStr = settings.isJustified ? "true" : "false"
         let hyphenateStr = settings.isHyphenationEnabled ? "true" : "false"
 
-        // Gültige Papierformate und angepasste Ränder
         let validPaper: String
         let marginStr: String
         switch paperFormat {
@@ -239,12 +238,29 @@ public final class PrintService {
     }
 
     private func convertMarkdownToTypst(_ markdown: String) -> String {
-        let lines = markdown.components(separatedBy: "\n")
-        var inCodeBlock = false
+        let rawLines = markdown.components(separatedBy: "\n")
         var resultLines: [String] = []
+        var inCodeBlock = false
+        var tableBuffer: [String] = []
 
-        for line in lines {
-            if line.hasPrefix("```") {
+        let flushTable = {
+            guard !tableBuffer.isEmpty else { return }
+            let typstTable = self.convertMarkdownTableToTypst(tableBuffer)
+            resultLines.append(typstTable)
+            tableBuffer.removeAll()
+        }
+
+        let isTableLine = { (line: String) -> Bool in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            return trimmed.hasPrefix("|") && trimmed.hasSuffix("|") && trimmed.contains("|")
+        }
+
+        for line in rawLines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Fenced Code-Blöcke
+            if trimmed.hasPrefix("```") {
+                flushTable()
                 inCodeBlock.toggle()
                 resultLines.append(line)
                 continue
@@ -254,34 +270,156 @@ public final class PrintService {
                 continue
             }
 
+            // Tabellen-Pufferung
+            if isTableLine(line) {
+                tableBuffer.append(line)
+                continue
+            } else {
+                flushTable()
+            }
+
             var processed = line
 
-            // Überschriften: # -> =
+            // 1. Überschriften: # -> =
             if processed.hasPrefix("# ") {
-                processed = "= " + escapeTypstContent(String(processed.dropFirst(2)))
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(2)))
+                processed = "= " + headingText
             } else if processed.hasPrefix("## ") {
-                processed = "== " + escapeTypstContent(String(processed.dropFirst(3)))
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(3)))
+                processed = "== " + headingText
             } else if processed.hasPrefix("### ") {
-                processed = "=== " + escapeTypstContent(String(processed.dropFirst(4)))
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(4)))
+                processed = "=== " + headingText
             } else if processed.hasPrefix("#### ") {
-                processed = "==== " + escapeTypstContent(String(processed.dropFirst(5)))
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(5)))
+                processed = "==== " + headingText
             } else if processed.hasPrefix("##### ") {
-                processed = "===== " + escapeTypstContent(String(processed.dropFirst(6)))
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(6)))
+                processed = "===== " + headingText
             } else if processed.hasPrefix("###### ") {
-                processed = "====== " + escapeTypstContent(String(processed.dropFirst(7)))
-            } else if processed.hasPrefix("> ") {
-                // Zitat
-                let quoteContent = escapeTypstContent(String(processed.dropFirst(2)))
-                processed = "#quote[\(quoteContent)]"
+                let headingText = convertInlineMarkdown(String(processed.dropFirst(7)))
+                processed = "====== " + headingText
+            } else if isHorizontalRule(trimmed) {
+                // 2. Horizontale Trennlinie
+                processed = "#line(length: 100%, stroke: 0.5pt + luma(180))"
+            } else if trimmed.hasPrefix(">") {
+                // 3. Zitate
+                var quoteBody = trimmed.dropFirst(1)
+                if quoteBody.hasPrefix(" ") { quoteBody = quoteBody.dropFirst(1) }
+                let formattedQuote = convertInlineMarkdown(String(quoteBody))
+                processed = "#quote[\(formattedQuote)]"
+            } else if let taskChecked = matchTaskChecked(line) {
+                // 4. Aufgabenliste (erledigt)
+                let body = convertInlineMarkdown(taskChecked.content)
+                processed = "\(taskChecked.indent)- #box(stroke: 0.8pt + luma(100), width: 0.85em, height: 0.85em, fill: luma(60), baseline: 10%)[] #strike[\(body)]"
+            } else if let taskUnchecked = matchTaskUnchecked(line) {
+                // 5. Aufgabenliste (offen)
+                let body = convertInlineMarkdown(taskUnchecked.content)
+                processed = "\(taskUnchecked.indent)- #box(stroke: 0.8pt + luma(100), width: 0.85em, height: 0.85em, baseline: 10%)[] \(body)"
+            } else if let bullet = matchBulletList(line) {
+                // 6. Ungeordnete Aufzählungsliste
+                let body = convertInlineMarkdown(bullet.content)
+                processed = "\(bullet.indent)- \(body)"
+            } else if let numbered = matchNumberedList(line) {
+                // 7. Nummerierte Liste (Typst + nummeriert automatisch fortlaufend)
+                let body = convertInlineMarkdown(numbered.content)
+                processed = "\(numbered.indent)+ \(body)"
             } else {
-                // Fließtext mit Einzügen und Inline-Markdown
+                // 8. Normaler Fließtext mit Einzügen und Inline-Markdown
                 processed = processLineIndentsAndEscaping(processed, isMarkdown: true)
             }
 
             resultLines.append(processed)
         }
 
+        flushTable()
         return resultLines.joined(separator: "\n")
+    }
+
+    private func isHorizontalRule(_ trimmed: String) -> Bool {
+        guard trimmed.count >= 3 else { return false }
+        let set = Set(trimmed)
+        return (set == ["-"] || set == ["*"] || set == ["_"])
+    }
+
+    private func matchTaskChecked(_ line: String) -> (indent: String, content: String)? {
+        let pattern = "^([ \t]*)[-*+][ \t]+\\[[xX]\\][ \t]+(.*)$"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsLine = line as NSString
+        guard let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 3 else { return nil }
+        let indent = nsLine.substring(with: match.range(at: 1))
+        let content = nsLine.substring(with: match.range(at: 2))
+        return (indent, content)
+    }
+
+    private func matchTaskUnchecked(_ line: String) -> (indent: String, content: String)? {
+        let pattern = "^([ \t]*)[-*+][ \t]+\\[ \\][ \t]+(.*)$"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsLine = line as NSString
+        guard let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 3 else { return nil }
+        let indent = nsLine.substring(with: match.range(at: 1))
+        let content = nsLine.substring(with: match.range(at: 2))
+        return (indent, content)
+    }
+
+    private func matchBulletList(_ line: String) -> (indent: String, content: String)? {
+        let pattern = "^([ \t]*)[-*+][ \t]+(.*)$"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsLine = line as NSString
+        guard let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 3 else { return nil }
+        let indent = nsLine.substring(with: match.range(at: 1))
+        let content = nsLine.substring(with: match.range(at: 2))
+        return (indent, content)
+    }
+
+    private func matchNumberedList(_ line: String) -> (indent: String, content: String)? {
+        let pattern = "^([ \t]*)[0-9]+[.)][ \t]+(.*)$"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsLine = line as NSString
+        guard let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 3 else { return nil }
+        let indent = nsLine.substring(with: match.range(at: 1))
+        let content = nsLine.substring(with: match.range(at: 2))
+        return (indent, content)
+    }
+
+    private func convertMarkdownTableToTypst(_ tableLines: [String]) -> String {
+        var parsedRows: [[String]] = []
+        for line in tableLines {
+            let clean = line.replacingOccurrences(of: "|", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: ":", with: "").trimmingCharacters(in: .whitespaces)
+            if clean.isEmpty && line.contains("-") {
+                // Trennzeile überspringen
+                continue
+            }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            var parts = trimmed.components(separatedBy: "|")
+            if parts.first?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeFirst() }
+            if parts.last?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeLast() }
+            let cells = parts.map { convertInlineMarkdown($0.trimmingCharacters(in: .whitespaces)) }
+            if !cells.isEmpty {
+                parsedRows.append(cells)
+            }
+        }
+
+        guard !parsedRows.isEmpty else { return "" }
+        let colCount = parsedRows.map { $0.count }.max() ?? 1
+
+        var typstCode = "\n#table(\n  columns: \(colCount),\n  stroke: 0.5pt + luma(180),\n"
+        for (idx, row) in parsedRows.enumerated() {
+            var paddedRow = row
+            while paddedRow.count < colCount {
+                paddedRow.append("")
+            }
+            let isHeader = (idx == 0)
+            for cell in paddedRow {
+                if isHeader {
+                    typstCode += "  [*\(cell)*],\n"
+                } else {
+                    typstCode += "  [\(cell)],\n"
+                }
+            }
+        }
+        typstCode += ")\n"
+        return typstCode
     }
 
     private func processLineIndentsAndEscaping(_ line: String, isMarkdown: Bool) -> String {
@@ -326,18 +464,37 @@ public final class PrintService {
 
     private func convertInlineMarkdown(_ text: String) -> String {
         var res = text
-        // Strikethrough: ~~text~~ -> #strike[text]
+
+        // Links: [Text](URL) -> #link("URL")[Text]
+        if let regex = try? NSRegularExpression(pattern: "\\[([^\\]]+)\\]\\(([^\\)]+)\\)", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#link(\"$2\")[$1]")
+        }
+
+        // Highlights: ==Text== -> #highlight[Text]
+        if let regex = try? NSRegularExpression(pattern: "==([^=]+?)==", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#highlight[$1]")
+        }
+
+        // Durchgestrichen: ~~text~~ -> #strike[text]
         if let regex = try? NSRegularExpression(pattern: "~~(.+?)~~", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#strike[$1]")
         }
-        // Bold: **text** -> *text*
+
+        // Fett-Kursiv: ***text*** -> *_\(text)_*
+        if let regex = try? NSRegularExpression(pattern: "\\*\\*\\*(.+?)\\*\\*\\*", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*_$1_*")
+        }
+
+        // Fett: **text** -> *text*
         if let regex = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*$1*")
         }
-        // Italic: *text* -> _text_ (nur wenn nicht Teil eines Worts)
+
+        // Kursiv: *text* -> _text_ (nur wenn nicht Teil eines Worts)
         if let regex = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
         }
+
         return res
     }
 
