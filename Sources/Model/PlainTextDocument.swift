@@ -3,22 +3,23 @@ import UniformTypeIdentifiers
 
 extension UTType {
     public static var markdownDocument: UTType {
-        UTType(importedAs: "net.daringfireball.markdown", conformingTo: .plainText)
+        UTType("net.daringfireball.markdown") ?? UTType(importedAs: "net.daringfireball.markdown", conformingTo: .plainText)
     }
 }
 
 public struct PlainTextDocument: FileDocument {
+    // Markdown als primäres Standardformat vor Plain Text
     public static var readableContentTypes: [UTType] {
-        [.plainText, .markdownDocument, UTType(filenameExtension: "md") ?? .plainText]
+        [.markdownDocument, .plainText]
     }
     public static var writableContentTypes: [UTType] {
-        [.plainText, .markdownDocument, UTType(filenameExtension: "md") ?? .plainText]
+        [.markdownDocument, .plainText]
     }
 
     public var text: String
-    public var isMarkdown: Bool = false
+    public var isMarkdown: Bool
 
-    public init(text: String = "", isMarkdown: Bool = false) {
+    public init(text: String = "", isMarkdown: Bool = true) {
         self.text = text
         self.isMarkdown = isMarkdown
     }
@@ -38,7 +39,8 @@ public struct PlainTextDocument: FileDocument {
         let contentType = configuration.contentType
         self.isMarkdown = contentType.conforms(to: .markdownDocument) || (contentType.preferredFilenameExtension?.lowercased() == "md")
         if !self.isMarkdown, let filename = configuration.file.filename {
-            self.isMarkdown = filename.hasSuffix(".md") || filename.hasSuffix(".markdown")
+            let lower = filename.lowercased()
+            self.isMarkdown = lower.hasSuffix(".md") || lower.hasSuffix(".markdown")
         }
     }
 

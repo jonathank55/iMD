@@ -59,6 +59,8 @@ public struct MacTextEditor: NSViewRepresentable {
         private var lastRenderedSize: Double = 0
         private var lastRenderedJustified: Bool = true
         private var lastRenderedHyphenation: Bool = true
+        private var lastRenderedMarkdownEnabled: Bool = true
+        private var lastActiveLineRange: NSRange = NSRange(location: NSNotFound, length: 0)
 
         init(_ parent: MacTextEditor) {
             self.parent = parent
@@ -70,13 +72,14 @@ public struct MacTextEditor: NSViewRepresentable {
             let settingsChanged = (settings.fontFamily != lastRenderedFamily) ||
                                   (settings.fontSize != lastRenderedSize) ||
                                   (settings.isJustified != lastRenderedJustified) ||
-                                  (settings.isHyphenationEnabled != lastRenderedHyphenation)
+                                  (settings.isHyphenationEnabled != lastRenderedHyphenation) ||
+                                  (settings.isMarkdownHighlightingEnabled != lastRenderedMarkdownEnabled)
 
             if force || settingsChanged || (newText != lastRenderedText) {
                 isUpdatingInternal = true
                 let savedRanges = textView.selectedRanges
-
                 let selectedRange = savedRanges.first?.rangeValue ?? NSRange(location: NSNotFound, length: 0)
+
                 let attributed = MarkdownHighlighter.shared.highlight(
                     text: newText,
                     isMarkdown: parent.isMarkdown,
@@ -88,7 +91,11 @@ public struct MacTextEditor: NSViewRepresentable {
                     isMarkdownHighlightingEnabled: settings.isMarkdownHighlightingEnabled
                 )
 
+                textView.undoManager?.disableUndoRegistration()
+                textView.textStorage?.beginEditing()
                 textView.textStorage?.setAttributedString(attributed)
+                textView.textStorage?.endEditing()
+                textView.undoManager?.enableUndoRegistration()
 
                 if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (newText as NSString).length {
                     textView.selectedRanges = savedRanges
@@ -99,6 +106,15 @@ public struct MacTextEditor: NSViewRepresentable {
                 lastRenderedSize = settings.fontSize
                 lastRenderedJustified = settings.isJustified
                 lastRenderedHyphenation = settings.isHyphenationEnabled
+                lastRenderedMarkdownEnabled = settings.isMarkdownHighlightingEnabled
+
+                let nsText = newText as NSString
+                if selectedRange.location != NSNotFound && selectedRange.location <= nsText.length {
+                    lastActiveLineRange = nsText.lineRange(for: selectedRange)
+                } else {
+                    lastActiveLineRange = NSRange(location: NSNotFound, length: 0)
+                }
+
                 isUpdatingInternal = false
             }
         }
@@ -123,9 +139,21 @@ public struct MacTextEditor: NSViewRepresentable {
                 isMarkdownHighlightingEnabled: parent.settings.isMarkdownHighlightingEnabled
             )
 
+            tv.undoManager?.disableUndoRegistration()
+            tv.textStorage?.beginEditing()
             tv.textStorage?.setAttributedString(attributed)
+            tv.textStorage?.endEditing()
+            tv.undoManager?.enableUndoRegistration()
+
             if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (currentText as NSString).length {
                 tv.setSelectedRange(selectedRange)
+            }
+
+            let nsText = currentText as NSString
+            if selectedRange.location != NSNotFound && selectedRange.location <= nsText.length {
+                lastActiveLineRange = nsText.lineRange(for: selectedRange)
+            } else {
+                lastActiveLineRange = NSRange(location: NSNotFound, length: 0)
             }
 
             isUpdatingInternal = false
@@ -136,8 +164,20 @@ public struct MacTextEditor: NSViewRepresentable {
 
             let selectedRange = tv.selectedRange()
             let currentText = tv.string
+            let nsText = currentText as NSString
 
+            guard selectedRange.location != NSNotFound && selectedRange.location <= nsText.length else { return }
+            let currentLineRange = nsText.lineRange(for: selectedRange)
+
+            // Falls die Selektionsänderung innerhalb derselben Zeile bleibt, ist kein Neuaufbau nötig
+            if currentLineRange.location == lastActiveLineRange.location &&
+               currentLineRange.length == lastActiveLineRange.length {
+                return
+            }
+
+            lastActiveLineRange = currentLineRange
             isUpdatingInternal = true
+
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
                 isMarkdown: parent.isMarkdown,
@@ -149,8 +189,13 @@ public struct MacTextEditor: NSViewRepresentable {
                 isMarkdownHighlightingEnabled: parent.settings.isMarkdownHighlightingEnabled
             )
 
+            tv.undoManager?.disableUndoRegistration()
+            tv.textStorage?.beginEditing()
             tv.textStorage?.setAttributedString(attributed)
-            if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (currentText as NSString).length {
+            tv.textStorage?.endEditing()
+            tv.undoManager?.enableUndoRegistration()
+
+            if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= nsText.length {
                 tv.setSelectedRange(selectedRange)
             }
             isUpdatingInternal = false

@@ -10,7 +10,7 @@ public struct SettingsView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Typografie & Layout")
+            Text("Typografie & Einstellungen")
                 .font(.headline)
 
             Divider()
@@ -26,10 +26,13 @@ public struct SettingsView: View {
                     Picker("", selection: $settings.fontFamily) {
                         Text("PT Serif").tag("PT Serif")
                         Text("System").tag("System")
-                        Text("EB Garamond").tag("EB Garamond")
-                        Text("Times New Roman").tag("Times New Roman")
+                        Text("New York").tag("New York")
                         Text("Helvetica Neue").tag("Helvetica Neue")
+                        Text("Georgia").tag("Georgia")
+                        Text("Palatino").tag("Palatino")
+                        Text("Times New Roman").tag("Times New Roman")
                         Text("Menlo").tag("Menlo")
+                        Text("SF Mono").tag("SF Mono")
                         Text("Courier New").tag("Courier New")
                     }
                     .labelsHidden()
@@ -70,6 +73,46 @@ public struct SettingsView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Standardformat")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Picker("Neues Dokument:", selection: $settings.defaultFormat) {
+                    Text("Markdown (.md)").tag("md")
+                    Text("Reiner Text (.txt)").tag("txt")
+                }
+                .pickerStyle(.segmented)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Konfiguration")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text("Gespeichert in: ~/.config/iText/config.json")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                HStack {
+                    Button("Datei öffnen") {
+                        settings.openConfigFileInDefaultEditor()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+
+                    Button("Im Finder anzeigen") {
+                        settings.openConfigDirectoryInFinder()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+
+            Divider()
+
             HStack {
                 Spacer()
                 Button("Fertig") {
@@ -78,7 +121,7 @@ public struct SettingsView: View {
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(18)
-        .frame(width: 320)
+        .padding(20)
+        .frame(width: 340)
     }
 }
