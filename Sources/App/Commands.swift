@@ -10,16 +10,15 @@ public struct iTextCommands: Commands {
     @ObservedObject private var settings = EditorSettings.shared
 
     private let standardFonts: [String] = [
+        "Bookerly",
         "PT Serif",
+        "Faustina",
         "System",
-        "New York",
         "Helvetica Neue",
         "Georgia",
         "Palatino",
         "Times New Roman",
-        "Menlo",
-        "SF Mono",
-        "Courier New"
+        "Menlo"
     ]
 
     public init() {}

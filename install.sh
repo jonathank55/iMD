@@ -42,21 +42,35 @@ cp "$SCRIPT_DIR/.build/release/iText" "$APP_DIR/Contents/MacOS/iText"
 cp "$SCRIPT_DIR/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns" 2>/dev/null || true
 cp "$SCRIPT_DIR/Configuration/Info-macOS.plist" "$APP_DIR/Contents/Info.plist"
 
+# Schriften im Bundle einbinden
+if [ -d "$SCRIPT_DIR/Fonts" ]; then
+    rm -rf "$APP_DIR/Contents/Resources/Fonts"
+    cp -R "$SCRIPT_DIR/Fonts" "$APP_DIR/Contents/Resources/Fonts"
+fi
+
 sed -i '' 's/\$(EXECUTABLE_NAME)/iText/g; s/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.jonathan.iText/g; s/\$(PRODUCT_NAME)/iText/g' "$APP_DIR/Contents/Info.plist"
 echo "APPL????" > "$APP_DIR/Contents/PkgInfo"
 
 codesign --force --deep --sign - "$APP_DIR"
 echo -e "${GREEN}✓ OK${RESET} App-Bundle erfolgreich signiert."
 
-# 4. App installieren
-echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 4:${RESET} App im Benutzer-Programme-Ordner installieren..."
+# 4. Schriftarten auf dem System installieren
+echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 4:${RESET} Schriftarten im System installieren..."
+mkdir -p "$HOME/Library/Fonts"
+if [ -d "$SCRIPT_DIR/Fonts" ]; then
+    cp -f "$SCRIPT_DIR/Fonts/"*.ttf "$HOME/Library/Fonts/" 2>/dev/null || true
+    echo -e "${GREEN}✓ OK${RESET} Sämtliche Schriftarten (Bookerly, Faustina, PT Serif) nach ~/Library/Fonts/ installiert."
+fi
+
+# 5. App installieren
+echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 5:${RESET} App im Benutzer-Programme-Ordner installieren..."
 mkdir -p "$HOME/Applications"
 rm -rf "$HOME/Applications/iText.app"
 cp -R "$APP_DIR" "$HOME/Applications/"
 echo -e "${GREEN}✓ OK${RESET} iText.app nach ~/Applications/ kopiert."
 
-# 5. Registrierung und Standard-App setzen
-echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 5:${RESET} Dateizuordnungen für .txt und .md registrieren..."
+# 6. Registrierung und Standard-App setzen
+echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 6:${RESET} Dateizuordnungen für .txt und .md registrieren..."
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$HOME/Applications/iText.app"
 
 if command -v duti &>/dev/null; then

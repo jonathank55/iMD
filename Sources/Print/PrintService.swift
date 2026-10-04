@@ -183,7 +183,7 @@ public final class PrintService {
         if family.isEmpty || family == "System" || family == ".AppleSystemUIFont" {
             resolvedFont = "(\"Helvetica Neue\", \"Arial\")"
         } else {
-            resolvedFont = "(\"\(family)\", \"PT Serif\", \"Times New Roman\")"
+            resolvedFont = "(\"\(family)\", \"Bookerly\", \"PT Serif\", \"Times New Roman\")"
         }
 
         let sizePt = String(format: "%.1fpt", settings.fontSize)

@@ -12,7 +12,7 @@ public struct AppConfig: Codable, Equatable {
     public var paperFormat: String
 
     public init(
-        fontFamily: String = "PT Serif",
+        fontFamily: String = "Bookerly",
         fontSize: Double = 16.0,
         lineSpacing: Double = 3.0,
         isJustified: Bool = true,
@@ -33,7 +33,7 @@ public struct AppConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.fontFamily = try container.decodeIfPresent(String.self, forKey: .fontFamily) ?? "PT Serif"
+        self.fontFamily = try container.decodeIfPresent(String.self, forKey: .fontFamily) ?? "Bookerly"
         self.fontSize = try container.decodeIfPresent(Double.self, forKey: .fontSize) ?? 16.0
         self.lineSpacing = try container.decodeIfPresent(Double.self, forKey: .lineSpacing) ?? 3.0
         self.isJustified = try container.decodeIfPresent(Bool.self, forKey: .isJustified) ?? true

@@ -24,16 +24,15 @@ public struct SettingsView: View {
                     Text("Familie:")
                     Spacer()
                     Picker("", selection: $settings.fontFamily) {
+                        Text("Bookerly").tag("Bookerly")
                         Text("PT Serif").tag("PT Serif")
+                        Text("Faustina").tag("Faustina")
                         Text("System").tag("System")
-                        Text("New York").tag("New York")
                         Text("Helvetica Neue").tag("Helvetica Neue")
                         Text("Georgia").tag("Georgia")
                         Text("Palatino").tag("Palatino")
                         Text("Times New Roman").tag("Times New Roman")
                         Text("Menlo").tag("Menlo")
-                        Text("SF Mono").tag("SF Mono")
-                        Text("Courier New").tag("Courier New")
                     }
                     .labelsHidden()
                     .frame(width: 170)

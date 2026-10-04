@@ -92,7 +92,33 @@ public final class MarkdownHighlighter {
                 }
                 font = base
             } else {
-                if targetFamily == "PT Serif" {
+                if targetFamily == "Bookerly" {
+                    let psName: String
+                    switch (bold, italic) {
+                    case (true, true): psName = "Bookerly-BoldItalic"
+                    case (true, false): psName = "Bookerly-Bold"
+                    case (false, true): psName = "Bookerly-Italic"
+                    case (false, false): psName = "Bookerly-Regular"
+                    }
+                    if let directFont = NSFont(name: psName, size: size) {
+                        font = directFont
+                    } else {
+                        font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
+                    }
+                } else if targetFamily == "Faustina" {
+                    let psName: String
+                    switch (bold, italic) {
+                    case (true, true): psName = "FaustinaItalic-Bold"
+                    case (true, false): psName = "FaustinaRoman-Bold"
+                    case (false, true): psName = "FaustinaItalic-Regular"
+                    case (false, false): psName = "FaustinaRoman-Regular"
+                    }
+                    if let directFont = NSFont(name: psName, size: size) {
+                        font = directFont
+                    } else {
+                        font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
+                    }
+                } else if targetFamily == "PT Serif" {
                     let psName: String
                     switch (bold, italic) {
                     case (true, true): psName = "PTSerif-BoldItalic"
