@@ -11,6 +11,7 @@ public struct iTextCommands: Commands {
 
     private let standardFonts: [String] = [
         "Bookerly",
+        "Kefa III",
         "PT Serif",
         "Faustina",
         "System",

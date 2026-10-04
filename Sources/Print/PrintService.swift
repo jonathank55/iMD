@@ -189,6 +189,8 @@ public final class PrintService {
         let resolvedFont: String
         if family.isEmpty || family == "System" || family == ".AppleSystemUIFont" {
             resolvedFont = "(\"Helvetica Neue\", \"Arial\")"
+        } else if family == "Kefa III" || family == "Kefa" {
+            resolvedFont = "(\"Kefa III\", \"Kefa\", \"Bookerly\", \"PT Serif\", \"Times New Roman\")"
         } else {
             resolvedFont = "(\"\(family)\", \"Bookerly\", \"PT Serif\", \"Times New Roman\")"
         }
@@ -225,17 +227,10 @@ public final class PrintService {
         let isLandscape = (printInfo.orientation == .landscape)
         let orientationAttr = isLandscape ? ", flipped: true" : ""
 
-        var headerCode = ""
-        if let docTitle = title, !docTitle.isEmpty {
-            let escapedTitle = escapeTypstContent(docTitle)
-            headerCode = "header: align(right)[#text(8pt, fill: luma(120))[\(escapedTitle)]],"
-        }
-
         var doc = """
         #set page(
           paper: "\(validPaper)"\(orientationAttr),
           margin: \(marginStr),
-          \(headerCode)
           numbering: "1"
         )
         #set text(
@@ -248,6 +243,10 @@ public final class PrintService {
           justify: \(justifyStr),
           leading: \(leadingPt)
         )
+        #show heading: set block(above: 2.2em, below: 1.4em)
+        #show heading.where(level: 1): it => block(above: 2.4em, below: 1.5em, it)
+        #show heading.where(level: 2): it => block(above: 2.0em, below: 1.3em, it)
+        #show heading.where(level: 3): it => block(above: 1.6em, below: 1.1em, it)
 
         """
 

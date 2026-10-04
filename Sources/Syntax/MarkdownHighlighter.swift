@@ -226,6 +226,17 @@ public final class MarkdownHighlighter {
                     } else {
                         font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
                     }
+                } else if targetFamily == "Kefa III" || targetFamily == "Kefa" {
+                    let psName: String
+                    switch (bold, italic) {
+                    case (true, _): psName = "KefaIII-Bold"
+                    case (false, _): psName = "KefaIII-Regular"
+                    }
+                    if let directFont = NSFont(name: psName, size: size) ?? NSFont(name: "Kefa III", size: size) ?? NSFont(name: "KefaIII-Light", size: size) {
+                        font = directFont
+                    } else {
+                        font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
+                    }
                 } else {
                     font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
                 }
