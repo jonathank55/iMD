@@ -5,8 +5,6 @@ public final class MacFontManager: NSObject {
 
     public override init() {
         super.init()
-        NSFontManager.shared.target = self
-        NSFontManager.shared.action = #selector(changeFont(_:))
     }
 
     public func availableFamilies() -> [String] {

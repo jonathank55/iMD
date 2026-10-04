@@ -9,6 +9,7 @@ public struct AppConfig: Codable, Equatable {
     public var isHyphenationEnabled: Bool
     public var isMarkdownHighlightingEnabled: Bool
     public var defaultFormat: String
+    public var paperFormat: String
 
     public init(
         fontFamily: String = "PT Serif",
@@ -17,7 +18,8 @@ public struct AppConfig: Codable, Equatable {
         isJustified: Bool = true,
         isHyphenationEnabled: Bool = true,
         isMarkdownHighlightingEnabled: Bool = true,
-        defaultFormat: String = "md"
+        defaultFormat: String = "md",
+        paperFormat: String = "a4"
     ) {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
@@ -26,6 +28,19 @@ public struct AppConfig: Codable, Equatable {
         self.isHyphenationEnabled = isHyphenationEnabled
         self.isMarkdownHighlightingEnabled = isMarkdownHighlightingEnabled
         self.defaultFormat = defaultFormat
+        self.paperFormat = paperFormat
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.fontFamily = try container.decodeIfPresent(String.self, forKey: .fontFamily) ?? "PT Serif"
+        self.fontSize = try container.decodeIfPresent(Double.self, forKey: .fontSize) ?? 16.0
+        self.lineSpacing = try container.decodeIfPresent(Double.self, forKey: .lineSpacing) ?? 3.0
+        self.isJustified = try container.decodeIfPresent(Bool.self, forKey: .isJustified) ?? true
+        self.isHyphenationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isHyphenationEnabled) ?? true
+        self.isMarkdownHighlightingEnabled = try container.decodeIfPresent(Bool.self, forKey: .isMarkdownHighlightingEnabled) ?? true
+        self.defaultFormat = try container.decodeIfPresent(String.self, forKey: .defaultFormat) ?? "md"
+        self.paperFormat = try container.decodeIfPresent(String.self, forKey: .paperFormat) ?? "a4"
     }
 }
 
@@ -69,25 +84,33 @@ public final class EditorSettings: ObservableObject {
         didSet { persist() }
     }
 
+    @Published public var paperFormat: String {
+        didSet { persist() }
+    }
+
     @Published public var isShowingSettings: Bool = false
     @Published public var isShowingStatistics: Bool = false
+    @Published public var isShowingPrintDialog: Bool = false
 
     private var isInitializing = false
 
     public init() {
         self.isInitializing = true
+        let fileExists = FileManager.default.fileExists(atPath: Self.configFileURL.path)
         let config = Self.loadConfigFile()
         self.fontFamily = config.fontFamily
         self.fontSize = config.fontSize
-        self.lineSpacing = config.lineSpacing > 0 ? config.lineSpacing : 3.0
+        self.lineSpacing = config.lineSpacing >= 0 ? config.lineSpacing : 3.0
         self.isJustified = config.isJustified
         self.isHyphenationEnabled = config.isHyphenationEnabled
         self.isMarkdownHighlightingEnabled = config.isMarkdownHighlightingEnabled
         self.defaultFormat = config.defaultFormat
+        self.paperFormat = config.paperFormat
         self.isInitializing = false
 
-        // Initiale Datei erstellen, falls noch nicht vorhanden
-        self.persist()
+        if !fileExists {
+            self.persist()
+        }
     }
 
     public static func loadConfigFile() -> AppConfig {
@@ -114,22 +137,25 @@ public final class EditorSettings: ObservableObject {
             isJustified: isJustified,
             isHyphenationEnabled: isHyphenationEnabled,
             isMarkdownHighlightingEnabled: isMarkdownHighlightingEnabled,
-            defaultFormat: defaultFormat
+            defaultFormat: defaultFormat,
+            paperFormat: paperFormat
         )
 
         let dirURL = Self.configDirectoryURL
         let fileURL = Self.configFileURL
 
-        do {
-            if !FileManager.default.fileExists(atPath: dirURL.path) {
-                try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true, attributes: nil)
+        DispatchQueue.global(qos: .utility).async {
+            do {
+                if !FileManager.default.fileExists(atPath: dirURL.path) {
+                    try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true, attributes: nil)
+                }
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                let data = try encoder.encode(config)
+                try data.write(to: fileURL, options: .atomic)
+            } catch {
+                // Fehler beim Schreiben der Konfiguration wird lautlos abgefangen
             }
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let data = try encoder.encode(config)
-            try data.write(to: fileURL, options: .atomic)
-        } catch {
-            // Unbehandelter Fehler wird ignoriert, um den Textfluss nicht zu unterbrechen
         }
     }
 

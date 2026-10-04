@@ -10,6 +10,7 @@ public final class PrintService {
         text: String,
         isMarkdown: Bool,
         title: String? = nil,
+        paperFormat: String? = nil,
         settings: EditorSettings = EditorSettings.shared,
         window: NSWindow? = nil
     ) {
@@ -18,7 +19,14 @@ public final class PrintService {
         let typFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).typ")
         let pdfFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).pdf")
 
-        let typstContent = buildTypstDocument(text: text, isMarkdown: isMarkdown, title: title, settings: settings)
+        let effectivePaper = (paperFormat ?? settings.paperFormat).lowercased()
+        let typstContent = buildTypstDocument(
+            text: text,
+            isMarkdown: isMarkdown,
+            title: title,
+            paperFormat: effectivePaper,
+            settings: settings
+        )
 
         do {
             try typstContent.write(to: typFileURL, atomically: true, encoding: .utf8)
@@ -118,14 +126,16 @@ public final class PrintService {
             printOp.showsPrintPanel = true
             printOp.showsProgressPanel = true
 
-            if let targetWindow = window ?? NSApp.keyWindow {
-                printOp.runModal(for: targetWindow, delegate: nil, didRun: nil, contextInfo: nil)
-            } else {
-                printOp.run()
+            DispatchQueue.main.async {
+                if let targetWindow = window ?? NSApp.keyWindow {
+                    printOp.runModal(for: targetWindow, delegate: nil, didRun: nil, contextInfo: nil)
+                } else {
+                    printOp.run()
+                }
             }
 
-            // Temporäre Dateien nach Ausführung aufräumen
-            DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 5.0) {
+            // Temporäre Dateien nach Druckaufbereitung aufräumen
+            DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 8.0) {
                 try? FileManager.default.removeItem(at: typFileURL)
                 try? FileManager.default.removeItem(at: pdfFileURL)
             }
@@ -136,7 +146,13 @@ public final class PrintService {
         }
     }
 
-    private func buildTypstDocument(text: String, isMarkdown: Bool, title: String?, settings: EditorSettings) -> String {
+    private func buildTypstDocument(
+        text: String,
+        isMarkdown: Bool,
+        title: String?,
+        paperFormat: String,
+        settings: EditorSettings
+    ) -> String {
         let family = settings.fontFamily
         let resolvedFont: String
         if family.isEmpty || family == "System" || family == ".AppleSystemUIFont" {
@@ -146,9 +162,34 @@ public final class PrintService {
         }
 
         let sizePt = String(format: "%.1fpt", settings.fontSize)
-        let leadingPt = String(format: "%.1fpt", max(2.0, settings.lineSpacing))
+
+        // Der Zeilenabstand beim Drucken entspricht exakt der im Editor sichtbaren Zeilenhöhe
+        let calculatedLeading = (settings.fontSize * 0.65) + settings.lineSpacing
+        let leadingPt = String(format: "%.2fpt", max(4.0, calculatedLeading))
+
         let justifyStr = settings.isJustified ? "true" : "false"
         let hyphenateStr = settings.isHyphenationEnabled ? "true" : "false"
+
+        // Gültige Papierformate und angepasste Ränder
+        let validPaper: String
+        let marginStr: String
+        switch paperFormat {
+        case "a5":
+            validPaper = "a5"
+            marginStr = "(top: 1.8cm, bottom: 1.8cm, left: 2.0cm, right: 2.0cm)"
+        case "a3":
+            validPaper = "a3"
+            marginStr = "(top: 3.5cm, bottom: 3.5cm, left: 4.0cm, right: 4.0cm)"
+        case "us-letter", "letter":
+            validPaper = "us-letter"
+            marginStr = "(top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm)"
+        case "us-legal", "legal":
+            validPaper = "us-legal"
+            marginStr = "(top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm)"
+        default:
+            validPaper = "a4"
+            marginStr = "(top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm)"
+        }
 
         var headerCode = ""
         if let docTitle = title, !docTitle.isEmpty {
@@ -156,11 +197,10 @@ public final class PrintService {
             headerCode = "header: align(right)[#text(8pt, fill: luma(120))[\(escapedTitle)]],"
         }
 
-        // Große Ränder für edles, buchgleiches Druckbild
         var doc = """
         #set page(
-          paper: "a4",
-          margin: (top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm),
+          paper: "\(validPaper)",
+          margin: \(marginStr),
           \(headerCode)
           numbering: "1"
         )
@@ -180,10 +220,22 @@ public final class PrintService {
         if isMarkdown {
             doc += convertMarkdownToTypst(text)
         } else {
-            doc += escapeTypstContent(text)
+            doc += convertPlainTextToTypst(text)
         }
 
         return doc
+    }
+
+    private func convertPlainTextToTypst(_ plainText: String) -> String {
+        let lines = plainText.components(separatedBy: "\n")
+        var resultLines: [String] = []
+
+        for line in lines {
+            let processedLine = processLineIndentsAndEscaping(line, isMarkdown: false)
+            resultLines.append(processedLine)
+        }
+
+        return resultLines.joined(separator: "\n")
     }
 
     private func convertMarkdownToTypst(_ markdown: String) -> String {
@@ -206,30 +258,70 @@ public final class PrintService {
 
             // Überschriften: # -> =
             if processed.hasPrefix("# ") {
-                processed = "= " + processed.dropFirst(2)
+                processed = "= " + escapeTypstContent(String(processed.dropFirst(2)))
             } else if processed.hasPrefix("## ") {
-                processed = "== " + processed.dropFirst(3)
+                processed = "== " + escapeTypstContent(String(processed.dropFirst(3)))
             } else if processed.hasPrefix("### ") {
-                processed = "=== " + processed.dropFirst(4)
+                processed = "=== " + escapeTypstContent(String(processed.dropFirst(4)))
             } else if processed.hasPrefix("#### ") {
-                processed = "==== " + processed.dropFirst(5)
+                processed = "==== " + escapeTypstContent(String(processed.dropFirst(5)))
             } else if processed.hasPrefix("##### ") {
-                processed = "===== " + processed.dropFirst(6)
+                processed = "===== " + escapeTypstContent(String(processed.dropFirst(6)))
             } else if processed.hasPrefix("###### ") {
-                processed = "====== " + processed.dropFirst(7)
+                processed = "====== " + escapeTypstContent(String(processed.dropFirst(7)))
             } else if processed.hasPrefix("> ") {
                 // Zitat
                 let quoteContent = escapeTypstContent(String(processed.dropFirst(2)))
                 processed = "#quote[\(quoteContent)]"
             } else {
-                // Inline-Elemente für Fließtext
-                processed = convertInlineMarkdown(processed)
+                // Fließtext mit Einzügen und Inline-Markdown
+                processed = processLineIndentsAndEscaping(processed, isMarkdown: true)
             }
 
             resultLines.append(processed)
         }
 
         return resultLines.joined(separator: "\n")
+    }
+
+    private func processLineIndentsAndEscaping(_ line: String, isMarkdown: Bool) -> String {
+        guard !line.isEmpty else { return "" }
+
+        var remainder = line
+        var tabCount = 0
+
+        // Führende Tabulatoren zählen und entfernen
+        while remainder.hasPrefix("\t") {
+            tabCount += 1
+            remainder.removeFirst()
+        }
+
+        // Führende 4-Leerzeichen-Blöcke zählen
+        var spaceIndentCount = 0
+        if tabCount == 0 {
+            while remainder.hasPrefix("    ") {
+                spaceIndentCount += 1
+                remainder.removeFirst(4)
+            }
+        }
+
+        let totalLevels = tabCount + spaceIndentCount
+        var prefix = ""
+        if totalLevels > 0 {
+            prefix = "#h(\(Double(totalLevels) * 2.2)em)"
+        }
+
+        var content: String
+        if isMarkdown {
+            content = convertInlineMarkdown(remainder)
+        } else {
+            content = escapeTypstContent(remainder)
+        }
+
+        // Tabulatoren innerhalb des Textkörpers ebenfalls als horizontalen Abstand auflösen
+        content = content.replacingOccurrences(of: "\t", with: "#h(2.2em)")
+
+        return prefix + content
     }
 
     private func convertInlineMarkdown(_ text: String) -> String {

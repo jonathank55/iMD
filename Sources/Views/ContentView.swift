@@ -1,5 +1,88 @@
 import SwiftUI
 
+public struct PrintDialogSheet: View {
+    @ObservedObject public var settings: EditorSettings
+    public let documentName: String
+    public let onPrint: () -> Void
+    public let onCancel: () -> Void
+
+    public init(
+        settings: EditorSettings,
+        documentName: String,
+        onPrint: @escaping () -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.settings = settings
+        self.documentName = documentName
+        self.onPrint = onPrint
+        self.onCancel = onCancel
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Dokument drucken")
+                .font(.headline)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Dokument: \(documentName)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                HStack {
+                    Text("Papierformat:")
+                    Spacer()
+                    Picker("", selection: $settings.paperFormat) {
+                        Text("A4 (210 × 297 mm)").tag("a4")
+                        Text("US Letter (8.5 × 11 in)").tag("us-letter")
+                        Text("A5 (148 × 210 mm)").tag("a5")
+                        Text("A3 (297 × 420 mm)").tag("a3")
+                        Text("US Legal (8.5 × 14 in)").tag("us-legal")
+                    }
+                    .labelsHidden()
+                    .frame(width: 190)
+                }
+
+                HStack {
+                    Text("Zeilenabstand:")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(settings.lineSpacing)) pt (übernommen)")
+                        .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    Text("Schriftgröße:")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(settings.fontSize)) pt (übernommen)")
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Divider()
+
+            HStack {
+                Button("Abbrechen") {
+                    onCancel()
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+
+                Button("Drucken…") {
+                    onPrint()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 340)
+    }
+}
+
 public struct ContentView: View {
     @Binding public var document: PlainTextDocument
     public var fileURL: URL?
@@ -39,12 +122,15 @@ public struct ContentView: View {
         max(1, Int(ceil(Double(wordsCount) / 200.0)))
     }
 
-    private func triggerPrint() {
+    private func executePrint(with paperFormat: String) {
         let title = fileURL?.deletingPathExtension().lastPathComponent
+        settings.paperFormat = paperFormat
         PrintService.shared.printDocument(
             text: document.text,
             isMarkdown: isMarkdown,
-            title: title
+            title: title,
+            paperFormat: paperFormat,
+            settings: settings
         )
     }
 
@@ -53,7 +139,7 @@ public struct ContentView: View {
             .frame(minWidth: 320, idealWidth: 375, minHeight: 480, idealHeight: 664)
             .onReceive(NotificationCenter.default.publisher(for: .iTextPrintRequested)) { _ in
                 if controlActiveState == .key {
-                    triggerPrint()
+                    settings.isShowingPrintDialog = true
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .iTextShowStatisticsRequested)) { _ in
@@ -65,6 +151,21 @@ public struct ContentView: View {
                 if controlActiveState == .key {
                     settings.isShowingSettings = true
                 }
+            }
+            .sheet(isPresented: $settings.isShowingPrintDialog) {
+                PrintDialogSheet(
+                    settings: settings,
+                    documentName: documentName,
+                    onPrint: {
+                        settings.isShowingPrintDialog = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            executePrint(with: settings.paperFormat)
+                        }
+                    },
+                    onCancel: {
+                        settings.isShowingPrintDialog = false
+                    }
+                )
             }
             .sheet(isPresented: $settings.isShowingStatistics) {
                 VStack(alignment: .leading, spacing: 14) {

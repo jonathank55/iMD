@@ -93,7 +93,7 @@ public struct SettingsView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Standardformat")
+                Text("Standardformate")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
@@ -102,6 +102,20 @@ public struct SettingsView: View {
                     Text("Reiner Text (.txt)").tag("txt")
                 }
                 .pickerStyle(.segmented)
+
+                HStack {
+                    Text("Papierformat (Drucken):")
+                    Spacer()
+                    Picker("", selection: $settings.paperFormat) {
+                        Text("A4").tag("a4")
+                        Text("US Letter").tag("us-letter")
+                        Text("A5").tag("a5")
+                        Text("A3").tag("a3")
+                        Text("US Legal").tag("us-legal")
+                    }
+                    .labelsHidden()
+                    .frame(width: 130)
+                }
             }
 
             Divider()
@@ -141,6 +155,6 @@ public struct SettingsView: View {
             }
         }
         .padding(20)
-        .frame(width: 340)
+        .frame(width: 350)
     }
 }

@@ -22,6 +22,14 @@ public struct iTextCommands: Commands {
         "Courier New"
     ]
 
+    private let standardPaperFormats: [(name: String, tag: String)] = [
+        ("A4 (Standard)", "a4"),
+        ("US Letter", "us-letter"),
+        ("A5 (Kompakt)", "a5"),
+        ("A3 (Großformat)", "a3"),
+        ("US Legal", "us-legal")
+    ]
+
     public init() {}
 
     public var body: some Commands {
@@ -37,6 +45,22 @@ public struct iTextCommands: Commands {
                 NotificationCenter.default.post(name: .iTextPrintRequested, object: nil)
             }
             .keyboardShortcut("p", modifiers: .command)
+
+            Menu("Standard-Papierformat") {
+                ForEach(standardPaperFormats, id: \.tag) { item in
+                    Button(action: {
+                        settings.paperFormat = item.tag
+                    }) {
+                        HStack {
+                            Text(item.name)
+                            if settings.paperFormat == item.tag {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         CommandMenu("Formatierung") {

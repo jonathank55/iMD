@@ -6,6 +6,25 @@ public typealias PlatformColor = NSColor
 public final class MarkdownHighlighter {
     public static let shared = MarkdownHighlighter()
 
+    private static var fontCache: [String: PlatformFont] = [:]
+    private static let cacheLock = NSLock()
+
+    private static let boldRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let italicRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let codeRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "`([^`]+?)`", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let strikeRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "~~([^~]+?)~~", options: [])) ?? NSRegularExpression()
+    }()
+
     private init() {}
 
     public static func resolveFont(
@@ -15,25 +34,42 @@ public final class MarkdownHighlighter {
         italic: Bool = false,
         mono: Bool = false
     ) -> PlatformFont {
+        let cacheKey = "\(family)_\(size)_\(bold)_\(italic)_\(mono)"
+
+        cacheLock.lock()
+        if let cached = fontCache[cacheKey] {
+            cacheLock.unlock()
+            return cached
+        }
+        cacheLock.unlock()
+
+        let font: PlatformFont
         if mono {
-            return NSFont.monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
-        }
-        let targetFamily = (family.isEmpty || family == "System" || family == ".AppleSystemUIFont") ? "" : family
-        var base: NSFont
-        if !targetFamily.isEmpty, let custom = NSFont(name: targetFamily, size: size) {
-            base = custom
+            font = NSFont.monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
         } else {
-            base = NSFont.systemFont(ofSize: size)
+            let targetFamily = (family.isEmpty || family == "System" || family == ".AppleSystemUIFont") ? "" : family
+            var base: NSFont
+            if !targetFamily.isEmpty, let custom = NSFont(name: targetFamily, size: size) {
+                base = custom
+            } else {
+                base = NSFont.systemFont(ofSize: size)
+            }
+
+            var mask: NSFontTraitMask = []
+            if bold { mask.insert(.boldFontMask) }
+            if italic { mask.insert(.italicFontMask) }
+
+            if !mask.isEmpty {
+                base = NSFontManager.shared.convert(base, toHaveTrait: mask)
+            }
+            font = base
         }
 
-        var mask: NSFontTraitMask = []
-        if bold { mask.insert(.boldFontMask) }
-        if italic { mask.insert(.italicFontMask) }
+        cacheLock.lock()
+        fontCache[cacheKey] = font
+        cacheLock.unlock()
 
-        if !mask.isEmpty {
-            base = NSFontManager.shared.convert(base, toHaveTrait: mask)
-        }
-        return base
+        return font
     }
 
     public static func makeParagraphStyle(
@@ -79,10 +115,10 @@ public final class MarkdownHighlighter {
         attributed.addAttribute(.foregroundColor, value: textColor, range: fullRange)
         attributed.addAttribute(.paragraphStyle, value: paragraphStyle, range: fullRange)
 
-        // For plain text (.txt files): do not format markdown, show pure normal text!
+        // Für reine Textdateien (.txt): keine Markdown-Formatierung, Anzeige als normaler Fließtext
         guard isMarkdown && isMarkdownHighlightingEnabled else { return attributed }
 
-        let hiddenFont = Self.resolveFont(family: fontFamily, size: 0.001)
+        let hiddenFont = Self.resolveFont(family: fontFamily, size: 0.1)
         let nsString = text as NSString
         var searchIndex = 0
 
@@ -95,7 +131,7 @@ public final class MarkdownHighlighter {
                 (selectedRange.location >= lineRange.location && selectedRange.location <= (lineRange.location + lineRange.length))
 
             if !cursorIntersects {
-                // Obsidian Live Preview: Hide markdown marks and show styled text
+                // Obsidian Live Preview: Markdown-Zeichen ausblenden und formatiert darstellen
                 applyHeadingIfPresent(
                     lineText: lineText,
                     lineRange: lineRange,
@@ -117,7 +153,7 @@ public final class MarkdownHighlighter {
                     codeBgColor: codeBgColor
                 )
             } else {
-                // Active line: Show raw markdown syntax, style # prefix in muted color for clarity
+                // Aktive Zeile: Markdown-Syntax in gedämpfter Farbe einblenden
                 applyActiveLineStyling(
                     lineText: lineText,
                     lineRange: lineRange,
@@ -161,11 +197,11 @@ public final class MarkdownHighlighter {
                 let textLength = max(0, lineRange.length - prefixLength)
                 let textRange = NSRange(location: lineRange.location + prefixLength, length: textLength)
 
-                // Hide the "# " mark like Obsidian
+                // Ausblenden der #-Markierung wie bei Obsidian
                 attributed.addAttribute(.foregroundColor, value: hiddenColor, range: prefixRange)
                 attributed.addAttribute(.font, value: hiddenFont, range: prefixRange)
 
-                // Format the heading content in bold and scaled size
+                // Formatierung des Überschrifteninhalts
                 let bonus: Double
                 switch count {
                 case 1: bonus = 5.0
@@ -211,12 +247,11 @@ public final class MarkdownHighlighter {
         let lineText = nsString.substring(with: lineRange)
         guard lineText.contains("*") || lineText.contains("`") || lineText.contains("~") else { return }
 
-        // Bold: **text**
-        applyRegex(
-            pattern: "\\*\\*(.+?)\\*\\*",
+        // Fett: **text**
+        applyCachedRegex(
+            regex: Self.boldRegex,
             lineText: lineText,
-            lineOffset: lineRange.location,
-            attributed: attributed
+            lineOffset: lineRange.location
         ) { fullRange, matchRange in
             let openRange = NSRange(location: fullRange.location, length: 2)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
@@ -229,12 +264,11 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.font, value: boldFont, range: matchRange)
         }
 
-        // Italic: *text*
-        applyRegex(
-            pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)",
+        // Kursiv: *text*
+        applyCachedRegex(
+            regex: Self.italicRegex,
             lineText: lineText,
-            lineOffset: lineRange.location,
-            attributed: attributed
+            lineOffset: lineRange.location
         ) { fullRange, matchRange in
             let openRange = NSRange(location: fullRange.location, length: 1)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
@@ -247,12 +281,11 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.font, value: italicFont, range: matchRange)
         }
 
-        // Inline Code: `code`
-        applyRegex(
-            pattern: "`([^`]+?)`",
+        // Inline-Code: `code`
+        applyCachedRegex(
+            regex: Self.codeRegex,
             lineText: lineText,
-            lineOffset: lineRange.location,
-            attributed: attributed
+            lineOffset: lineRange.location
         ) { fullRange, matchRange in
             let openRange = NSRange(location: fullRange.location, length: 1)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
@@ -266,12 +299,11 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.backgroundColor, value: codeBgColor, range: matchRange)
         }
 
-        // Strikethrough: ~~text~~
-        applyRegex(
-            pattern: "~~([^~]+?)~~",
+        // Durchgestrichen: ~~text~~
+        applyCachedRegex(
+            regex: Self.strikeRegex,
             lineText: lineText,
-            lineOffset: lineRange.location,
-            attributed: attributed
+            lineOffset: lineRange.location
         ) { fullRange, matchRange in
             let openRange = NSRange(location: fullRange.location, length: 2)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
@@ -284,14 +316,12 @@ public final class MarkdownHighlighter {
         }
     }
 
-    private func applyRegex(
-        pattern: String,
+    private func applyCachedRegex(
+        regex: NSRegularExpression,
         lineText: String,
         lineOffset: Int,
-        attributed: NSMutableAttributedString,
         handler: (NSRange, NSRange) -> Void
     ) {
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
         let nsLine = lineText as NSString
         let matches = regex.matches(in: lineText, options: [], range: NSRange(location: 0, length: nsLine.length))
 
