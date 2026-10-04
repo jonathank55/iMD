@@ -149,7 +149,8 @@ public final class PrintService {
     }
 
     private func resolvePaperFormat(from printInfo: NSPrintInfo, fallback: String) -> String {
-        if let name = printInfo.paperName?.lowercased() {
+        if let paperName = printInfo.paperName {
+            let name = paperName.rawValue.lowercased()
             if name.contains("letter") { return "us-letter" }
             if name.contains("legal") { return "us-legal" }
             if name.contains("a5") { return "a5" }
