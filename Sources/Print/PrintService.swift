@@ -10,21 +10,28 @@ public final class PrintService {
         text: String,
         isMarkdown: Bool,
         title: String? = nil,
-        paperFormat: String? = nil,
         settings: EditorSettings = EditorSettings.shared,
         window: NSWindow? = nil
     ) {
+        let printInfo = NSPrintInfo.shared
+        printInfo.horizontalPagination = .fit
+        printInfo.verticalPagination = .automatic
+        printInfo.isHorizontallyCentered = true
+        printInfo.isVerticallyCentered = true
+
+        let detectedPaper = resolvePaperFormat(from: printInfo, fallback: settings.paperFormat)
+
         let tempDir = FileManager.default.temporaryDirectory
         let uniqueID = UUID().uuidString
         let typFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).typ")
         let pdfFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).pdf")
 
-        let effectivePaper = (paperFormat ?? settings.paperFormat).lowercased()
         let typstContent = buildTypstDocument(
             text: text,
             isMarkdown: isMarkdown,
             title: title,
-            paperFormat: effectivePaper,
+            paperFormat: detectedPaper,
+            printInfo: printInfo,
             settings: settings
         )
 
@@ -110,12 +117,6 @@ public final class PrintService {
                 return
             }
 
-            let printInfo = NSPrintInfo.shared
-            printInfo.horizontalPagination = .fit
-            printInfo.verticalPagination = .automatic
-            printInfo.isHorizontallyCentered = true
-            printInfo.isVerticallyCentered = true
-
             guard let printOp = pdfDoc.printOperation(for: printInfo, scalingMode: .pageScaleDownToFit, autoRotate: true) else {
                 showErrorAlert(message: "Druckoperation konnte nicht initialisiert werden.", window: window)
                 try? FileManager.default.removeItem(at: typFileURL)
@@ -123,6 +124,7 @@ public final class PrintService {
                 return
             }
 
+            // Vollständig natives macOS-Druckmenü anzeigen
             printOp.showsPrintPanel = true
             printOp.showsProgressPanel = true
 
@@ -146,11 +148,33 @@ public final class PrintService {
         }
     }
 
+    private func resolvePaperFormat(from printInfo: NSPrintInfo, fallback: String) -> String {
+        if let name = printInfo.paperName?.lowercased() {
+            if name.contains("letter") { return "us-letter" }
+            if name.contains("legal") { return "us-legal" }
+            if name.contains("a5") { return "a5" }
+            if name.contains("a3") { return "a3" }
+            if name.contains("a4") { return "a4" }
+        }
+
+        let size = printInfo.paperSize
+        let w = min(size.width, size.height)
+        let h = max(size.width, size.height)
+
+        if abs(w - 595) < 30 && abs(h - 842) < 30 { return "a4" }
+        if abs(w - 612) < 30 && abs(h - 792) < 30 { return "us-letter" }
+        if abs(w - 420) < 30 && abs(h - 595) < 30 { return "a5" }
+        if abs(w - 842) < 30 && abs(h - 1191) < 30 { return "a3" }
+
+        return fallback.isEmpty ? "a4" : fallback
+    }
+
     private func buildTypstDocument(
         text: String,
         isMarkdown: Bool,
         title: String?,
         paperFormat: String,
+        printInfo: NSPrintInfo,
         settings: EditorSettings
     ) -> String {
         let family = settings.fontFamily
@@ -190,6 +214,9 @@ public final class PrintService {
             marginStr = "(top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm)"
         }
 
+        let isLandscape = (printInfo.orientation == .landscape)
+        let orientationAttr = isLandscape ? ", flipped: true" : ""
+
         var headerCode = ""
         if let docTitle = title, !docTitle.isEmpty {
             let escapedTitle = escapeTypstContent(docTitle)
@@ -198,7 +225,7 @@ public final class PrintService {
 
         var doc = """
         #set page(
-          paper: "\(validPaper)",
+          paper: "\(validPaper)"\(orientationAttr),
           margin: \(marginStr),
           \(headerCode)
           numbering: "1"
