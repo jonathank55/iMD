@@ -14,6 +14,119 @@ extension Notification.Name {
     public static let iTextRedoRequested = Notification.Name("iTextRedoRequested")
 }
 
+/// Zeichnet echte Tabellenraster und horizontale Trennlinien (Obsidian-Vorbild) hinter dem Text.
+public final class iTextLayoutManager: NSLayoutManager {
+    public override func drawBackground(forGlyphRange glyphsToShow: NSRange, at origin: NSPoint) {
+        super.drawBackground(forGlyphRange: glyphsToShow, at: origin)
+        guard let storage = textStorage, let container = textContainers.first else { return }
+        let charRange = characterRange(forGlyphRange: glyphsToShow, actualGlyphRange: nil)
+        let pad = container.lineFragmentPadding
+        let lineColor = NSColor.separatorColor
+
+        storage.enumerateAttribute(.iTextRule, in: charRange, options: []) { value, range, _ in
+            guard value != nil else { return }
+            let glyphRange = self.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+            guard glyphRange.length > 0 else { return }
+            let used = self.lineFragmentUsedRect(forGlyphAt: glyphRange.location, effectiveRange: nil)
+            let frag = self.lineFragmentRect(forGlyphAt: glyphRange.location, effectiveRange: nil)
+            let y = (origin.y + used.midY).rounded() + 0.5
+            let path = NSBezierPath()
+            let viewport = MarkdownHighlighter.shared.viewportTextWidth
+            let right = viewport > 0 ? min(frag.maxX, viewport) : frag.maxX
+            path.move(to: NSPoint(x: origin.x + frag.minX + pad, y: y))
+            path.line(to: NSPoint(x: origin.x + right - pad, y: y))
+            path.lineWidth = 1
+            lineColor.setStroke()
+            path.stroke()
+        }
+
+        storage.enumerateAttribute(.iTextTableRow, in: charRange, options: []) { value, range, _ in
+            guard let info = value as? iTextTableRowInfo, info.colX.count >= 2 else { return }
+            let glyphRange = self.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+            guard glyphRange.length > 0 else { return }
+            let frag = self.lineFragmentRect(forGlyphAt: glyphRange.location, effectiveRange: nil)
+            let x0 = origin.x + frag.minX + pad
+            let top = origin.y + frag.minY
+            let bottom = origin.y + frag.maxY
+            let width = info.colX.last ?? 0
+            let rowRect = NSRect(x: x0, y: top, width: width, height: bottom - top)
+
+            if info.isHeader {
+                NSColor.quaternaryLabelColor.withAlphaComponent(0.35).setFill()
+                rowRect.fill()
+            }
+            lineColor.setStroke()
+            let path = NSBezierPath()
+            path.lineWidth = 1
+            // Obere und untere Kante
+            path.move(to: NSPoint(x: x0, y: top.rounded() + 0.5))
+            path.line(to: NSPoint(x: x0 + width, y: top.rounded() + 0.5))
+            path.move(to: NSPoint(x: x0, y: bottom.rounded() - 0.5))
+            path.line(to: NSPoint(x: x0 + width, y: bottom.rounded() - 0.5))
+            // Spaltenlinien
+            for cx in info.colX {
+                let x = (x0 + cx).rounded() + 0.5
+                path.move(to: NSPoint(x: x, y: top))
+                path.line(to: NSPoint(x: x, y: bottom))
+            }
+            path.stroke()
+        }
+    }
+
+    /// Tabellenzeilen werden nicht als Rohtext gezeichnet, sondern zellweise mit Umbruch in die Spaltenbreite.
+    public override func drawGlyphs(forGlyphRange glyphsToShow: NSRange, at origin: NSPoint) {
+        guard let storage = textStorage else {
+            super.drawGlyphs(forGlyphRange: glyphsToShow, at: origin)
+            return
+        }
+        let charRange = characterRange(forGlyphRange: glyphsToShow, actualGlyphRange: nil)
+        let end = charRange.location + charRange.length
+        var tableRuns: [NSRange] = []
+        storage.enumerateAttribute(.iTextTableRow, in: charRange, options: []) { value, range, _ in
+            if value is iTextTableRowInfo { tableRuns.append(range) }
+        }
+
+        func drawNormal(_ from: Int, _ to: Int) {
+            guard to > from else { return }
+            let gr = self.glyphRange(forCharacterRange: NSRange(location: from, length: to - from), actualCharacterRange: nil)
+            super.drawGlyphs(forGlyphRange: gr, at: origin)
+        }
+
+        var cursor = charRange.location
+        for run in tableRuns {
+            drawNormal(cursor, run.location)
+            cursor = run.location + run.length
+        }
+        drawNormal(cursor, end)
+
+        guard let container = textContainers.first else { return }
+        let pad = container.lineFragmentPadding
+        for run in tableRuns {
+            var full = NSRange(location: 0, length: 0)
+            guard let info = storage.attribute(.iTextTableRow, at: run.location, longestEffectiveRange: &full, in: NSRange(location: 0, length: storage.length)) as? iTextTableRowInfo else { continue }
+            let glyphRange = self.glyphRange(forCharacterRange: run, actualCharacterRange: nil)
+            guard glyphRange.length > 0 else { continue }
+            let frag = self.lineFragmentRect(forGlyphAt: glyphRange.location, effectiveRange: nil)
+            let x0 = origin.x + frag.minX + pad
+            let top = origin.y + frag.minY
+            for (k, rel) in info.cells.enumerated() where k + 1 < info.colX.count {
+                let cellRange = NSRange(location: full.location + rel.location, length: rel.length)
+                let str: NSAttributedString
+                if let cachedString = info.cellStringCache[k] {
+                    str = cachedString
+                } else {
+                    str = iTextTableRowInfo.cellString(from: storage, range: cellRange)
+                    info.cellStringCache[k] = str
+                }
+                guard str.length > 0 else { continue }
+                let w = max(10, info.colX[k + 1] - info.colX[k] - 2 * info.padX)
+                let rect = NSRect(x: x0 + info.colX[k] + info.padX, y: top + info.padY, width: w, height: frag.height - info.padY)
+                str.draw(with: rect, options: [.usesLineFragmentOrigin, .usesFontLeading])
+            }
+        }
+    }
+}
+
 public final class iTextEditorTextView: NSTextView {
     public override func performKeyEquivalent(with event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
@@ -66,10 +179,10 @@ public struct MacTextEditor: NSViewRepresentable {
 
     public func makeNSView(context: Context) -> NSScrollView {
         let textStorage = NSTextStorage()
-        let layoutManager = NSLayoutManager()
+        let layoutManager = iTextLayoutManager()
         textStorage.addLayoutManager(layoutManager)
-        let textContainer = NSTextContainer(containerSize: NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
-        textContainer.widthTracksTextView = true
+        let textContainer = NSTextContainer(containerSize: NSSize(width: 600, height: CGFloat.greatestFiniteMagnitude))
+        textContainer.widthTracksTextView = false
         layoutManager.addTextContainer(textContainer)
 
         let scrollView = NSScrollView()
@@ -83,7 +196,7 @@ public struct MacTextEditor: NSViewRepresentable {
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
-        textView.autoresizingMask = [.width]
+        textView.autoresizingMask = []
 
         textView.delegate = context.coordinator
         textView.isRichText = true
@@ -99,6 +212,13 @@ public struct MacTextEditor: NSViewRepresentable {
         textView.isAutomaticTextReplacementEnabled = false
 
         scrollView.documentView = textView
+        scrollView.contentView.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.handleViewportResize),
+            name: NSView.frameDidChangeNotification,
+            object: scrollView.contentView
+        )
 
         let coordinator = context.coordinator
         coordinator.textView = textView
@@ -343,6 +463,47 @@ public struct MacTextEditor: NSViewRepresentable {
             }
         }
 
+        private var lastViewportWidth: CGFloat = 0
+        private var resizeWorkItem: DispatchWorkItem?
+
+        /// Teilt dem Highlighter die aktuelle Sichtbreite mit (vor jedem Highlighting).
+        private func syncViewportWidth(_ tv: NSTextView) {
+            guard let clip = tv.enclosingScrollView?.contentView else { return }
+            let width = max(0, clip.bounds.width - tv.textContainerInset.width * 2)
+            MarkdownHighlighter.shared.viewportTextWidth = width
+            lastViewportWidth = clip.bounds.width
+        }
+
+        /// Setzt Container- und Ansichtsbreite passend zur Fenstergröße.
+        private func applyLayoutWidth(_ tv: NSTextView) {
+            guard let clip = tv.enclosingScrollView?.contentView, let container = tv.textContainer else { return }
+            let inset = tv.textContainerInset.width
+            let viewport = max(0, clip.bounds.width - inset * 2)
+            guard viewport > 0 else { return }
+            let containerWidth = viewport
+            if abs(container.size.width - containerWidth) > 0.5 {
+                container.size = NSSize(width: containerWidth, height: CGFloat.greatestFiniteMagnitude)
+            }
+            let frameWidth = containerWidth + inset * 2
+            if abs(tv.frame.width - frameWidth) > 0.5 {
+                tv.setFrameSize(NSSize(width: frameWidth, height: tv.frame.height))
+            }
+            tv.needsDisplay = true
+        }
+
+        @objc func handleViewportResize() {
+            guard !isUpdatingInternal, let tv = textView, let clip = tv.enclosingScrollView?.contentView else { return }
+            guard abs(clip.bounds.width - lastViewportWidth) > 0.5 else { return }
+            // Beim Aufziehen des Fensters werden Neuberechnungen gebündelt, damit die Bedienung flüssig bleibt
+            resizeWorkItem?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                guard let self = self, let tv = self.textView else { return }
+                self.updateContent(tv, newText: tv.string, settings: self.parent.settings, force: true)
+            }
+            resizeWorkItem = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: work)
+        }
+
         func updateContent(_ textView: NSTextView, newText: String, settings: EditorSettings, force: Bool) {
             guard !isUpdatingInternal else { return }
 
@@ -362,6 +523,7 @@ public struct MacTextEditor: NSViewRepresentable {
                 let savedRanges = textView.selectedRanges
                 let selectedRange = savedRanges.first?.rangeValue ?? NSRange(location: NSNotFound, length: 0)
 
+                syncViewportWidth(textView)
                 let attributed = MarkdownHighlighter.shared.highlight(
                     text: newText,
                     isMarkdown: parent.isMarkdown,
@@ -379,6 +541,7 @@ public struct MacTextEditor: NSViewRepresentable {
                 textView.textStorage?.setAttributedString(attributed)
                 textView.textStorage?.endEditing()
                 textView.undoManager?.enableUndoRegistration()
+                applyLayoutWidth(textView)
 
                 if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (newText as NSString).length {
                     textView.selectedRanges = savedRanges
@@ -424,6 +587,7 @@ public struct MacTextEditor: NSViewRepresentable {
             }
 
             let selectedRange = tv.selectedRange()
+            syncViewportWidth(tv)
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
                 isMarkdown: parent.isMarkdown,
@@ -441,6 +605,7 @@ public struct MacTextEditor: NSViewRepresentable {
             tv.textStorage?.setAttributedString(attributed)
             tv.textStorage?.endEditing()
             tv.undoManager?.enableUndoRegistration()
+            applyLayoutWidth(tv)
 
             if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (currentText as NSString).length {
                 tv.setSelectedRange(selectedRange)
@@ -474,6 +639,7 @@ public struct MacTextEditor: NSViewRepresentable {
             lastActiveLineRange = currentLineRange
             isUpdatingInternal = true
 
+            syncViewportWidth(tv)
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
                 isMarkdown: parent.isMarkdown,
@@ -491,6 +657,7 @@ public struct MacTextEditor: NSViewRepresentable {
             tv.textStorage?.setAttributedString(attributed)
             tv.textStorage?.endEditing()
             tv.undoManager?.enableUndoRegistration()
+            applyLayoutWidth(tv)
 
             if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= nsText.length {
                 tv.setSelectedRange(selectedRange)
