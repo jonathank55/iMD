@@ -85,21 +85,30 @@ public final class MarkdownHighlighter {
             font = NSFont.monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
         } else {
             let targetFamily = (family.isEmpty || family == "System" || family == ".AppleSystemUIFont") ? "" : family
-            var base: NSFont
-            if !targetFamily.isEmpty, let custom = NSFont(name: targetFamily, size: size) {
-                base = custom
+            if targetFamily.isEmpty {
+                var base = NSFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
+                if italic {
+                    base = NSFontManager.shared.convert(base, toHaveTrait: .italicFontMask)
+                }
+                font = base
             } else {
-                base = NSFont.systemFont(ofSize: size)
+                if targetFamily == "PT Serif" {
+                    let psName: String
+                    switch (bold, italic) {
+                    case (true, true): psName = "PTSerif-BoldItalic"
+                    case (true, false): psName = "PTSerif-Bold"
+                    case (false, true): psName = "PTSerif-Italic"
+                    case (false, false): psName = "PTSerif-Regular"
+                    }
+                    if let directFont = NSFont(name: psName, size: size) {
+                        font = directFont
+                    } else {
+                        font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
+                    }
+                } else {
+                    font = resolveViaDescriptor(family: targetFamily, size: size, bold: bold, italic: italic)
+                }
             }
-
-            var mask: NSFontTraitMask = []
-            if bold { mask.insert(.boldFontMask) }
-            if italic { mask.insert(.italicFontMask) }
-
-            if !mask.isEmpty {
-                base = NSFontManager.shared.convert(base, toHaveTrait: mask)
-            }
-            font = base
         }
 
         cacheLock.lock()
@@ -107,6 +116,38 @@ public final class MarkdownHighlighter {
         cacheLock.unlock()
 
         return font
+    }
+
+    private static func resolveViaDescriptor(
+        family: String,
+        size: Double,
+        bold: Bool,
+        italic: Bool
+    ) -> PlatformFont {
+        var traits = NSFontDescriptor.SymbolicTraits()
+        if bold { traits.insert(.bold) }
+        if italic { traits.insert(.italic) }
+
+        let descriptor = NSFontDescriptor(fontAttributes: [
+            .family: family,
+            .traits: [NSFontDescriptor.TraitKey.symbolic: traits.rawValue]
+        ])
+
+        if let resolved = NSFont(descriptor: descriptor, size: size) {
+            return resolved
+        }
+
+        if let direct = NSFont(name: family, size: size) {
+            var mask: NSFontTraitMask = []
+            if bold { mask.insert(.boldFontMask) }
+            if italic { mask.insert(.italicFontMask) }
+            if !mask.isEmpty {
+                return NSFontManager.shared.convert(direct, toHaveTrait: mask)
+            }
+            return direct
+        }
+
+        return NSFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
     }
 
     public static func makeParagraphStyle(

@@ -2,7 +2,13 @@ import SwiftUI
 
 @main
 public struct iTextApp: App {
-    public init() {}
+    public init() {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let settings = EditorSettings.shared
+            _ = MarkdownHighlighter.resolveFont(family: settings.fontFamily, size: settings.fontSize)
+            _ = MarkdownHighlighter.resolveFont(family: settings.fontFamily, size: settings.fontSize + 6.0, bold: true)
+        }
+    }
 
     public var body: some Scene {
         DocumentGroup(newDocument: PlainTextDocument(text: "", isMarkdown: EditorSettings.shared.defaultFormat == "md")) { file in
