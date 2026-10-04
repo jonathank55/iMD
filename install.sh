@@ -67,7 +67,7 @@ echo -e "${GREEN}✓ OK${RESET} App-Bundle erfolgreich signiert."
 echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 5:${RESET} App im Benutzer-Programme-Ordner installieren..."
 mkdir -p "$HOME/Applications"
 rm -rf "$HOME/Applications/iText.app"
-cp -R "$APP_DIR" "$HOME/Applications/iText.app"
+cp -R "$APP_DIR" "$HOME/Applications/"
 echo -e "${GREEN}✓ OK${RESET} iText.app nach ~/Applications/ kopiert."
 
 # 6. Registrierung und Standard-App setzen
