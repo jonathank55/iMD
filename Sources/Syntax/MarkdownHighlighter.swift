@@ -1,4 +1,6 @@
 import AppKit
+import CoreText
+import NaturalLanguage
 
 public typealias PlatformFont = NSFont
 public typealias PlatformColor = NSColor
@@ -278,6 +280,7 @@ public final class MarkdownHighlighter {
         style.alignment = isJustified ? .justified : .left
         style.hyphenationFactor = isHyphenationEnabled ? 1.0 : 0.0
         style.lineSpacing = CGFloat(lineSpacing)
+        style.lineBreakStrategy = .pushOut
         return style
     }
 
@@ -336,6 +339,11 @@ public final class MarkdownHighlighter {
         attributed.addAttribute(.foregroundColor, value: textColor, range: fullRange)
         attributed.addAttribute(.paragraphStyle, value: paragraphStyle, range: fullRange)
 
+        let langRecognizer = NLLanguageRecognizer()
+        langRecognizer.processString(String(text.prefix(2000)))
+        let dominantLang = langRecognizer.dominantLanguage?.rawValue ?? (Locale.current.language.languageCode?.identifier ?? "de")
+        attributed.addAttribute(NSAttributedString.Key(kCTLanguageAttributeName as String), value: dominantLang, range: fullRange)
+
         // Für reine Textdateien (.txt): keine Markdown-Formatierung, Anzeige als normaler Text
         guard isMarkdown && isMarkdownHighlightingEnabled else { return attributed }
 
@@ -360,6 +368,8 @@ public final class MarkdownHighlighter {
                 let italicFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
                 attributed.addAttribute(.font, value: italicFont, range: lineRange)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: lineRange)
+                let leftStyle = Self.makeParagraphStyle(isJustified: false, isHyphenationEnabled: false, lineSpacing: lineSpacing)
+                attributed.addAttribute(.paragraphStyle, value: leftStyle, range: lineRange)
                 searchIndex = lineRange.location + lineRange.length
                 continue
             }
@@ -368,6 +378,8 @@ public final class MarkdownHighlighter {
                 let mathFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
                 attributed.addAttribute(.font, value: mathFont, range: lineRange)
                 attributed.addAttribute(.backgroundColor, value: codeBgColor.withAlphaComponent(0.25), range: lineRange)
+                let leftStyle = Self.makeParagraphStyle(isJustified: false, isHyphenationEnabled: false, lineSpacing: lineSpacing)
+                attributed.addAttribute(.paragraphStyle, value: leftStyle, range: lineRange)
                 searchIndex = lineRange.location + lineRange.length
                 continue
             }
@@ -378,6 +390,8 @@ public final class MarkdownHighlighter {
                 let monoFont = Self.resolveFont(family: fontFamily, size: fontSize - 1.0, mono: true)
                 attributed.addAttribute(.font, value: monoFont, range: lineRange)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: lineRange)
+                let leftStyle = Self.makeParagraphStyle(isJustified: false, isHyphenationEnabled: false, lineSpacing: lineSpacing)
+                attributed.addAttribute(.paragraphStyle, value: leftStyle, range: lineRange)
                 searchIndex = lineRange.location + lineRange.length
                 continue
             }
@@ -386,6 +400,8 @@ public final class MarkdownHighlighter {
                 let monoFont = Self.resolveFont(family: fontFamily, size: fontSize - 1.0, mono: true)
                 attributed.addAttribute(.font, value: monoFont, range: lineRange)
                 attributed.addAttribute(.backgroundColor, value: codeBgColor, range: lineRange)
+                let leftStyle = Self.makeParagraphStyle(isJustified: false, isHyphenationEnabled: false, lineSpacing: lineSpacing)
+                attributed.addAttribute(.paragraphStyle, value: leftStyle, range: lineRange)
                 searchIndex = lineRange.location + lineRange.length
                 continue
             }
@@ -603,6 +619,10 @@ public final class MarkdownHighlighter {
                 }
                 let headingFont = Self.resolveFont(family: fontFamily, size: fontSize + bonus, bold: true)
                 attributed.addAttribute(.font, value: headingFont, range: textRange)
+                let headingStyle = NSMutableParagraphStyle()
+                headingStyle.alignment = .left
+                headingStyle.hyphenationFactor = 0.0
+                attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
                 return true
             }
         }
@@ -622,6 +642,10 @@ public final class MarkdownHighlighter {
         // Echte Trennlinie: Rohzeichen unsichtbar, Linie wird vom iTextLayoutManager gezeichnet
         attributed.addAttribute(.foregroundColor, value: NSColor.clear, range: lineRange)
         attributed.addAttribute(.iTextRule, value: true, range: lineRange)
+        let ruleStyle = NSMutableParagraphStyle()
+        ruleStyle.alignment = .left
+        ruleStyle.hyphenationFactor = 0.0
+        attributed.addAttribute(.paragraphStyle, value: ruleStyle, range: lineRange)
         return true
     }
 
@@ -1083,6 +1107,10 @@ public final class MarkdownHighlighter {
             if afterHashIndex < lineText.endIndex && lineText[afterHashIndex] == " " {
                 let prefixRange = NSRange(location: lineRange.location, length: count + 1)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: prefixRange)
+                let headingStyle = NSMutableParagraphStyle()
+                headingStyle.alignment = .left
+                headingStyle.hyphenationFactor = 0.0
+                attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
             }
             return
         }

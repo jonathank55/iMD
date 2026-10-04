@@ -180,6 +180,8 @@ public struct MacTextEditor: NSViewRepresentable {
     public func makeNSView(context: Context) -> NSScrollView {
         let textStorage = NSTextStorage()
         let layoutManager = iTextLayoutManager()
+        layoutManager.usesDefaultHyphenation = settings.isHyphenationEnabled
+        layoutManager.delegate = context.coordinator
         textStorage.addLayoutManager(layoutManager)
         let textContainer = NSTextContainer(containerSize: NSSize(width: 600, height: CGFloat.greatestFiniteMagnitude))
         textContainer.widthTracksTextView = false
@@ -247,7 +249,7 @@ public struct MacTextEditor: NSViewRepresentable {
         }
     }
 
-    public final class Coordinator: NSObject, NSTextViewDelegate, NSWindowDelegate {
+    public final class Coordinator: NSObject, NSTextViewDelegate, NSWindowDelegate, NSLayoutManagerDelegate {
         var parent: MacTextEditor
         weak var textView: NSTextView?
         weak var previousWindowDelegate: NSWindowDelegate?
@@ -547,6 +549,15 @@ public struct MacTextEditor: NSViewRepresentable {
                     isMarkdownHighlightingEnabled: settings.isMarkdownHighlightingEnabled
                 )
 
+                if let lm = textView.layoutManager {
+                    if lm.usesDefaultHyphenation != settings.isHyphenationEnabled {
+                        lm.usesDefaultHyphenation = settings.isHyphenationEnabled
+                    }
+                    if lm.delegate !== self {
+                        lm.delegate = self
+                    }
+                }
+
                 textView.undoManager?.disableUndoRegistration()
                 textView.textStorage?.beginEditing()
                 textView.textStorage?.setAttributedString(attributed)
@@ -575,6 +586,10 @@ public struct MacTextEditor: NSViewRepresentable {
 
                 isUpdatingInternal = false
             }
+        }
+
+        public func layoutManager(_ layoutManager: NSLayoutManager, shouldBreakLineByHyphenatingBeforeCharacterAt charIndex: Int) -> Bool {
+            return parent.settings.isHyphenationEnabled
         }
 
         public func textDidChange(_ notification: Notification) {
