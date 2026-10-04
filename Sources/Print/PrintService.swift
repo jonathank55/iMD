@@ -452,8 +452,72 @@ public final class PrintService {
         return (indent, content)
     }
 
+    private func prepareCellForWrapping(_ text: String) -> String {
+        var res = text
+
+        // 1. Markdown Links schützen [Text](URL), damit URLs nicht durch ZWS korrumpiert werden
+        var linkPlaceholders: [String] = []
+        let linkPattern = "\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
+        if let linkRegex = try? NSRegularExpression(pattern: linkPattern, options: []) {
+            let matches = linkRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let linkText = (res as NSString).substring(with: match.range(at: 1))
+                let linkUrl = (res as NSString).substring(with: match.range(at: 2))
+                let sanitizedText = prepareCellForWrapping(linkText)
+                let placeholder = "\u{FFF5}LNK\(linkPlaceholders.count)\u{FFF6}"
+                linkPlaceholders.append("[\(sanitizedText)](\(linkUrl))")
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
+        }
+
+        // 2. Inline-Codeblöcke (`...`)
+        // Typst trennt Monospace-Codeblöcke standardmäßig nicht an Unterstrichen oder Punkten.
+        // Durch Einfügen von ZWS (\u{200B}) nach Trennzeichen können Monospace-Codes
+        // bei schmalen Spalten exakt umbrechen, ohne in Nachbarzellen zu ragen.
+        let codePattern = "`([^`]+)`"
+        if let codeRegex = try? NSRegularExpression(pattern: codePattern, options: []) {
+            let matches = codeRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let code = (res as NSString).substring(with: match.range(at: 1))
+                var broken = ""
+                var countSinceBreak = 0
+                for char in code {
+                    broken.append(char)
+                    countSinceBreak += 1
+                    if "_-./:\\@?&=".contains(char) {
+                        broken.append("\u{200B}")
+                        countSinceBreak = 0
+                    } else if countSinceBreak >= 12 {
+                        broken.append("\u{200B}")
+                        countSinceBreak = 0
+                    }
+                }
+                let replacement = "`\(broken)`"
+                res = (res as NSString).replacingCharacters(in: match.range, with: replacement)
+            }
+        }
+
+        // 3. Pfade und Punkte im Freitext
+        let pathPattern = "(?<=[a-zA-Z0-9_])([/.])(?=[a-zA-Z0-9_])"
+        if let pathRegex = try? NSRegularExpression(pattern: pathPattern, options: []) {
+            let matches = pathRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let sep = (res as NSString).substring(with: match.range(at: 1))
+                let replacement = "\(sep)\u{200B}"
+                res = (res as NSString).replacingCharacters(in: match.range, with: replacement)
+            }
+        }
+
+        // 4. Links wiederherstellen
+        for (idx, originalLink) in linkPlaceholders.enumerated() {
+            res = res.replacingOccurrences(of: "\u{FFF5}LNK\(idx)\u{FFF6}", with: originalLink)
+        }
+
+        return res
+    }
+
     private func convertMarkdownTableToTypst(_ tableLines: [String]) -> String {
-        var parsedRows: [[String]] = []
+        var rawRows: [[String]] = []
         for line in tableLines {
             let clean = line.replacingOccurrences(of: "|", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: ":", with: "").trimmingCharacters(in: .whitespaces)
             if clean.isEmpty && line.contains("-") {
@@ -467,32 +531,74 @@ public final class PrintService {
             var parts = protected.components(separatedBy: "|")
             if parts.first?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeFirst() }
             if parts.last?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeLast() }
-            // Nach maskierten Unterstrichen entsteht ein Umbruchpunkt, damit lange Namen (z. B. FORMATVORGABE_SYSTEMDATEIEN) nicht über die Zelle ragen
+
             let cells = parts.map {
-                convertInlineMarkdown($0.replacingOccurrences(of: sentinel, with: "|").trimmingCharacters(in: .whitespaces))
-                    .replacingOccurrences(of: "\\_", with: "\\_#sym.zws;")
+                $0.replacingOccurrences(of: sentinel, with: "|").trimmingCharacters(in: .whitespaces)
             }
             if !cells.isEmpty {
-                parsedRows.append(cells)
+                rawRows.append(cells)
             }
         }
 
-        guard !parsedRows.isEmpty else { return "" }
-        let colCount = parsedRows.map { $0.count }.max() ?? 1
+        guard !rawRows.isEmpty else { return "" }
+        let colCount = rawRows.map { $0.count }.max() ?? 1
 
-        // Spaltenbreiten: proportional zur längsten Zelle (gedeckelt), damit alle Spalten vollständig in die Seitenbreite passen
-        var maxLens = [Int](repeating: 1, count: colCount)
-        for row in parsedRows {
-            for (i, cell) in row.enumerated() {
-                maxLens[i] = max(maxLens[i], min(cell.count, 80))
+        // 1. Spaltenbreiten-Berechnung basierend auf dem unformatierten Textinhalt
+        var colMaxLengths = [Int](repeating: 1, count: colCount)
+        var colAvgLengths = [Double](repeating: 1.0, count: colCount)
+
+        for c in 0..<colCount {
+            var sum = 0
+            var count = 0
+            var maxLen = 1
+            for row in rawRows {
+                if c < row.count {
+                    let len = row[c].count
+                    maxLen = max(maxLen, len)
+                    sum += len
+                    count += 1
+                }
+            }
+            colMaxLengths[c] = maxLen
+            colAvgLengths[c] = count > 0 ? Double(sum) / Double(count) : Double(maxLen)
+        }
+
+        // Gewichtsbestimmung über glatte Potenzfunktion (0.65):
+        // Sehr kurze Spalten (<= 8 Zeichen) erhalten 'auto'.
+        // Längere Spalten teilen die Seitenbreite harmonisch auf.
+        var weights: [String] = []
+        var frCount = 0
+        for c in 0..<colCount {
+            let maxL = colMaxLengths[c]
+            let avgL = colAvgLengths[c]
+            let effectiveL = (Double(maxL) * 0.7) + (avgL * 0.3)
+
+            if maxL <= 8 && colCount > 1 {
+                weights.append("auto")
+            } else {
+                let w = max(1.0, pow(effectiveL, 0.65))
+                weights.append(String(format: "%.2ffr", w))
+                frCount += 1
             }
         }
-        // Kurze Spalten passen sich dem Inhalt an (auto), lange teilen den Restplatz proportional (fr)
-        let weights = maxLens.map { len -> String in
-            len <= 26 ? "auto" : String(format: "%.2ffr", Double(len).squareRoot())
+        if frCount == 0 {
+            weights = [String](repeating: "1fr", count: colCount)
         }
 
-        var typstCode = "\n#block(width: 100%)[\n#set text(size: 0.88em, hyphenate: true)\n#set par(justify: false, leading: 0.5em)\n#table(\n  columns: (\(weights.joined(separator: ", "))),\n  inset: (x: 5pt, y: 4.5pt),\n  align: left + top,\n  stroke: 0.5pt + luma(150),\n  fill: (x, y) => if y == 0 { luma(232) } else if calc.even(y) { luma(247) } else { none },\n"
+        // 2. Zellinhalte für Typst umwandeln und Umbruchstellen injizieren
+        var parsedRows: [[String]] = []
+        for row in rawRows {
+            var formattedRow: [String] = []
+            for cellText in row {
+                let prepared = prepareCellForWrapping(cellText)
+                let converted = convertInlineMarkdown(prepared)
+                    .replacingOccurrences(of: "\\_", with: "\\_#sym.zws;")
+                formattedRow.append(converted)
+            }
+            parsedRows.append(formattedRow)
+        }
+
+        var typstCode = "\n#block(width: 100%)[\n#set text(size: 9.5pt, hyphenate: true)\n#set par(justify: false, leading: 0.45em)\n#table(\n  columns: (\(weights.joined(separator: ", "))),\n  inset: (x: 5.5pt, y: 5.0pt),\n  align: left + top,\n  stroke: 0.5pt + luma(170),\n  fill: (x, y) => if y == 0 { luma(235) } else if calc.even(y) { luma(248) } else { none },\n"
         for (idx, row) in parsedRows.enumerated() {
             var paddedRow = row
             while paddedRow.count < colCount {
