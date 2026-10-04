@@ -124,7 +124,7 @@ echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 4:${RESET} Schriftarten im System i
 mkdir -p "$HOME/Library/Fonts"
 if [ -d "$SCRIPT_DIR/Fonts" ]; then
     cp -f "$SCRIPT_DIR/Fonts/"*.ttf "$HOME/Library/Fonts/" 2>/dev/null || true
-    echo -e "${GREEN}✓ OK${RESET} Sämtliche Schriftarten (Bookerly, Faustina, PT Serif) nach ~/Library/Fonts/ installiert."
+    echo -e "${GREEN}✓ OK${RESET} Sämtliche Schriftarten (Bookerly, Faustina, PT Serif, Kefa III) nach ~/Library/Fonts/ installiert."
 fi
 
 # 5. App installieren

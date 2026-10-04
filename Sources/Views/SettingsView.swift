@@ -25,6 +25,7 @@ public struct SettingsView: View {
                     Spacer()
                     Picker("", selection: $settings.fontFamily) {
                         Text("Bookerly").tag("Bookerly")
+                        Text("Kefa III").tag("Kefa III")
                         Text("PT Serif").tag("PT Serif")
                         Text("Faustina").tag("Faustina")
                         Text("System").tag("System")
