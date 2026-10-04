@@ -3,7 +3,48 @@ import AppKit
 public typealias PlatformFont = NSFont
 public typealias PlatformColor = NSColor
 
+public extension NSAttributedString.Key {
+    static let iTextRule = NSAttributedString.Key("iTextRule")
+    static let iTextTableRow = NSAttributedString.Key("iTextTableRow")
+}
+
+public final class iTextTableRowInfo: NSObject {
+    public let colX: [CGFloat]
+    public let isHeader: Bool
+    /// Zellbereiche relativ zum Zeilenanfang (ohne Pipes, ohne Randleerzeichen)
+    public let cells: [NSRange]
+    public let padX: CGFloat
+    public let padY: CGFloat
+    /// Zwischenspeicher der aufbereiteten Zelltexte (Info-Objekt lebt nur bis zum nächsten Highlighting)
+    public var cellStringCache: [Int: NSAttributedString] = [:]
+    public init(colX: [CGFloat], isHeader: Bool, cells: [NSRange], padX: CGFloat, padY: CGFloat) {
+        self.colX = colX
+        self.isHeader = isHeader
+        self.cells = cells
+        self.padX = padX
+        self.padY = padY
+    }
+
+    /// Erzeugt den umbrechenden Zelltext für Zeichnen und Höhenmessung (identische Basis für beides)
+    public static func cellString(from source: NSAttributedString, range: NSRange) -> NSAttributedString {
+        guard range.length > 0, range.location + range.length <= source.length else { return NSAttributedString() }
+        let m = NSMutableAttributedString(attributedString: source.attributedSubstring(from: range))
+        let p = NSMutableParagraphStyle()
+        p.lineBreakMode = .byWordWrapping
+        p.alignment = .left
+        p.lineSpacing = 2
+        p.hyphenationFactor = 1.0
+        m.addAttribute(.paragraphStyle, value: p, range: NSRange(location: 0, length: m.length))
+        return m
+    }
+}
+
 public final class MarkdownHighlighter {
+    /// Verfügbare Textbreite des Editors (Container-Breite bei Normaldarstellung). 0 = unbekannt.
+    public var viewportTextWidth: CGFloat = 0
+    /// Zwischenspeicher der Tabellenmaße (Spaltenbreiten, Zeilenhöhen), damit unveränderte Tabellen nicht erneut vermessen werden.
+    private var tableLayoutCache: [String: (colWidths: [CGFloat], rowHeights: [CGFloat])] = [:]
+
     public static let shared = MarkdownHighlighter()
 
     private static var fontCache: [String: PlatformFont] = [:]
@@ -304,6 +345,7 @@ public final class MarkdownHighlighter {
         var inCodeBlock = false
         var inMathBlock = false
         var tableRowCounter = 0
+        var tableRowsForLayout: [(range: NSRange, isDelimiter: Bool)] = []
 
         while searchIndex < nsString.length {
             let lineRange = nsString.lineRange(for: NSRange(location: searchIndex, length: 0))
@@ -458,6 +500,7 @@ public final class MarkdownHighlighter {
                     ) : (isTable: false, isDelimiter: false)
 
                     if tableResult.isTable {
+                        tableRowsForLayout.append((range: lineRange, isDelimiter: tableResult.isDelimiter))
                         if tableResult.isDelimiter {
                             tableRowCounter = 0
                         } else {
@@ -496,6 +539,8 @@ public final class MarkdownHighlighter {
 
             searchIndex = lineRange.location + lineRange.length
         }
+
+        layoutTables(rows: tableRowsForLayout, attributed: attributed, nsString: nsString, styleKey: "\(fontFamily)|\(fontSize)|\(lineSpacing)")
 
         return attributed
     }
@@ -561,9 +606,9 @@ public final class MarkdownHighlighter {
         let match = Self.hrRegex.firstMatch(in: lineText, options: [], range: NSRange(location: 0, length: nsLine.length))
         guard match != nil else { return false }
 
-        attributed.addAttribute(.foregroundColor, value: secondaryColor, range: lineRange)
-        attributed.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: lineRange)
-        attributed.addAttribute(.strikethroughColor, value: secondaryColor, range: lineRange)
+        // Echte Trennlinie: Rohzeichen unsichtbar, Linie wird vom iTextLayoutManager gezeichnet
+        attributed.addAttribute(.foregroundColor, value: NSColor.clear, range: lineRange)
+        attributed.addAttribute(.iTextRule, value: true, range: lineRange)
         return true
     }
 
@@ -808,6 +853,164 @@ public final class MarkdownHighlighter {
         }
 
         return (true, false)
+    }
+
+    /// Dynamische Tabellendarstellung: Spaltenbreiten werden an die Fensterbreite angepasst, Zellinhalt umbricht
+    /// (wie beim Drucken). Die Rohzeile reserviert nur die Zeilenhöhe, Raster und Zelltext zeichnet der iTextLayoutManager.
+    private func layoutTables(
+        rows: [(range: NSRange, isDelimiter: Bool)],
+        attributed: NSMutableAttributedString,
+        nsString: NSString,
+        styleKey: String
+    ) {
+        guard !rows.isEmpty else { return }
+        let padX: CGFloat = 7
+        let padY: CGFloat = 4.5
+        let linePad: CGFloat = 5
+
+        // Gruppen zusammenhängender Zeilen bilden
+        var groups: [[(range: NSRange, isDelimiter: Bool)]] = []
+        for row in rows {
+            if let last = groups.last?.last, last.range.location + last.range.length == row.range.location {
+                groups[groups.count - 1].append(row)
+            } else {
+                groups.append([row])
+            }
+        }
+
+        func width(of range: NSRange) -> CGFloat {
+            guard range.length > 0 else { return 0 }
+            return ceil(attributed.attributedSubstring(from: range).size().width)
+        }
+
+        for group in groups {
+            // Zellbereiche (absolut) je Zeile bestimmen; maskierte Pipes (\|) trennen nicht
+            var cellRanges: [[NSRange]] = []
+            for row in group {
+                var cells: [NSRange] = []
+                if !row.isDelimiter {
+                    var pipes: [Int] = []
+                    var prev: unichar = 0
+                    for i in 0..<row.range.length {
+                        let ch = nsString.character(at: row.range.location + i)
+                        if ch == 0x7C && prev != 0x5C { pipes.append(row.range.location + i) }
+                        prev = ch
+                    }
+                    if pipes.count >= 2 {
+                        for k in 0..<(pipes.count - 1) {
+                            var start = pipes[k] + 1
+                            var end = pipes[k + 1]
+                            while start < end, [0x20, 0x09].contains(nsString.character(at: start)) { start += 1 }
+                            while end > start, [0x20, 0x09].contains(nsString.character(at: end - 1)) { end -= 1 }
+                            cells.append(NSRange(location: start, length: end - start))
+                        }
+                    }
+                }
+                cellRanges.append(cells)
+            }
+            let colCount = cellRanges.map { $0.count }.max() ?? 0
+            guard colCount > 0 else { continue }
+
+            let groupEnd = group[group.count - 1].range.location + group[group.count - 1].range.length
+            let groupSpan = NSRange(location: group[0].range.location, length: groupEnd - group[0].range.location)
+            let cacheKey = nsString.substring(with: groupSpan) + "\u{0}\(Int(viewportTextWidth.rounded()))\u{0}" + styleKey
+            let cached = tableLayoutCache[cacheKey]
+            var colWidths: [CGFloat] = cached?.colWidths ?? []
+            var computedHeights: [CGFloat] = []
+
+            if cached == nil {
+            // Natürliche und minimale Spaltenbreiten (längstes unteilbares Wort)
+            var nat = [CGFloat](repeating: 2 * padX + 8, count: colCount)
+            var minW = [CGFloat](repeating: 2 * padX + 8, count: colCount)
+            for cells in cellRanges {
+                for (k, cell) in cells.enumerated() {
+                    nat[k] = max(nat[k], width(of: cell) + 2 * padX)
+                    var tokenStart = cell.location
+                    let cellEnd = cell.location + cell.length
+                    var i = cell.location
+                    while i <= cellEnd {
+                        if i == cellEnd || nsString.character(at: i) == 0x20 {
+                            let token = NSRange(location: tokenStart, length: i - tokenStart)
+                            minW[k] = max(minW[k], width(of: token) + 2 * padX)
+                            tokenStart = i + 1
+                        }
+                        i += 1
+                    }
+                    minW[k] = min(minW[k], nat[k])
+                }
+            }
+
+            // Verfügbare Tabellenbreite aus der Fensterbreite
+            let natTotal = nat.reduce(0, +)
+            let minTotal = minW.reduce(0, +)
+            let available = viewportTextWidth > 0 ? max(40, viewportTextWidth - 2 * linePad - 1) : natTotal
+            colWidths = nat
+            if natTotal > available {
+                if minTotal < available {
+                    let f = (available - minTotal) / (natTotal - minTotal)
+                    colWidths = zip(minW, nat).map { $0 + ($1 - $0) * f }
+                } else {
+                    let f = available / minTotal
+                    colWidths = minW.map { $0 * f }
+                }
+            } else if natTotal < available {
+                let f = available / natTotal
+                colWidths = nat.map { $0 * f }
+            }
+            }
+
+            var colX: [CGFloat] = [0]
+            for w in colWidths { colX.append((colX.last ?? 0) + w) }
+
+            for (r, row) in group.enumerated() {
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.alignment = .left
+                paragraph.hyphenationFactor = 0
+                paragraph.lineBreakMode = .byClipping
+                paragraph.lineSpacing = 0
+
+                if row.isDelimiter {
+                    attributed.addAttribute(.paragraphStyle, value: paragraph, range: row.range)
+                    attributed.removeAttribute(.strikethroughStyle, range: row.range)
+                    continue
+                }
+
+                // Zeilenhöhe aus dem höchsten umgebrochenen Zellinhalt (aus dem Zwischenspeicher, falls vorhanden)
+                let rowHeight: CGFloat
+                if let cachedHeights = cached?.rowHeights, r < cachedHeights.count {
+                    rowHeight = cachedHeights[r]
+                } else {
+                    var maxCellHeight: CGFloat = 0
+                    for (k, cell) in cellRanges[r].enumerated() {
+                        let str = iTextTableRowInfo.cellString(from: attributed, range: cell)
+                        let w = max(10, colWidths[k] - 2 * padX)
+                        let h = str.boundingRect(with: NSSize(width: w, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading]).height
+                        maxCellHeight = max(maxCellHeight, ceil(h))
+                    }
+                    if let font = attributed.attribute(.font, at: row.range.location, effectiveRange: nil) as? NSFont {
+                        let oneLine = NSAttributedString(string: "M", attributes: [.font: font]).size().height
+                        maxCellHeight = max(maxCellHeight, ceil(oneLine))
+                    }
+                    rowHeight = maxCellHeight + 2 * padY
+                }
+                while computedHeights.count < r { computedHeights.append(0) }
+                computedHeights.append(rowHeight)
+                paragraph.minimumLineHeight = rowHeight
+                paragraph.maximumLineHeight = rowHeight
+                attributed.addAttribute(.paragraphStyle, value: paragraph, range: row.range)
+                attributed.removeAttribute(.backgroundColor, range: row.range)
+
+                let isHeader = r + 1 < group.count && group[r + 1].isDelimiter
+                let relative = cellRanges[r].map { NSRange(location: $0.location - row.range.location, length: $0.length) }
+                let info = iTextTableRowInfo(colX: colX, isHeader: isHeader, cells: relative, padX: padX, padY: padY)
+                attributed.addAttribute(.iTextTableRow, value: info, range: row.range)
+            }
+
+            if cached == nil {
+                if tableLayoutCache.count > 300 { tableLayoutCache.removeAll() }
+                tableLayoutCache[cacheKey] = (colWidths, computedHeights)
+            }
+        }
     }
 
     private func styleTablePipes(
