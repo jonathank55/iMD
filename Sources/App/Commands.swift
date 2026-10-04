@@ -140,7 +140,7 @@ public struct iMDCommands: Commands {
             Menu("Zeilenabstand") {
                 Button(action: { settings.lineSpacing = 0.0 }) {
                     HStack {
-                        Text("Kompakt (0 pt)")
+                        Text("Kompakt")
                         if settings.lineSpacing == 0.0 {
                             Spacer()
                             Image(systemName: "checkmark")
@@ -149,7 +149,7 @@ public struct iMDCommands: Commands {
                 }
                 Button(action: { settings.lineSpacing = 3.0 }) {
                     HStack {
-                        Text("Standard (3 pt)")
+                        Text("Standard")
                         if settings.lineSpacing == 3.0 {
                             Spacer()
                             Image(systemName: "checkmark")
@@ -158,7 +158,7 @@ public struct iMDCommands: Commands {
                 }
                 Button(action: { settings.lineSpacing = 6.0 }) {
                     HStack {
-                        Text("Großzügig (6 pt)")
+                        Text("Großzügig")
                         if settings.lineSpacing == 6.0 {
                             Spacer()
                             Image(systemName: "checkmark")
@@ -167,7 +167,7 @@ public struct iMDCommands: Commands {
                 }
                 Button(action: { settings.lineSpacing = 10.0 }) {
                     HStack {
-                        Text("Weit (10 pt)")
+                        Text("Weit")
                         if settings.lineSpacing == 10.0 {
                             Spacer()
                             Image(systemName: "checkmark")
@@ -176,7 +176,7 @@ public struct iMDCommands: Commands {
                 }
                 Button(action: { settings.lineSpacing = 14.0 }) {
                     HStack {
-                        Text("Doppelt (14 pt)")
+                        Text("Doppelt")
                         if settings.lineSpacing == 14.0 {
                             Spacer()
                             Image(systemName: "checkmark")

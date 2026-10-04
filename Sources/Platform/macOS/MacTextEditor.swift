@@ -213,6 +213,18 @@ public struct MacTextEditor: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
 
+        let defaultPara = MarkdownHighlighter.makeParagraphStyle(
+            isJustified: settings.isJustified,
+            isHyphenationEnabled: settings.isHyphenationEnabled,
+            lineSpacing: settings.lineSpacing
+        )
+        textView.defaultParagraphStyle = defaultPara
+        textView.typingAttributes = [
+            .font: MarkdownHighlighter.resolveFont(family: settings.fontFamily, size: settings.fontSize),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: defaultPara
+        ]
+
         scrollView.documentView = textView
         scrollView.contentView.postsFrameChangedNotifications = true
         NotificationCenter.default.addObserver(
@@ -564,6 +576,17 @@ public struct MacTextEditor: NSViewRepresentable {
                 textView.textStorage?.endEditing()
                 textView.undoManager?.enableUndoRegistration()
                 applyLayoutWidth(textView)
+
+                let defaultPara = MarkdownHighlighter.makeParagraphStyle(
+                    isJustified: settings.isJustified,
+                    isHyphenationEnabled: settings.isHyphenationEnabled,
+                    lineSpacing: settings.lineSpacing
+                )
+                textView.defaultParagraphStyle = defaultPara
+                var typing = textView.typingAttributes
+                typing[.paragraphStyle] = defaultPara
+                typing[.font] = MarkdownHighlighter.resolveFont(family: settings.fontFamily, size: settings.fontSize)
+                textView.typingAttributes = typing
 
                 if selectedRange.location != NSNotFound && (selectedRange.location + selectedRange.length) <= (newText as NSString).length {
                     textView.selectedRanges = savedRanges

@@ -28,13 +28,13 @@ public final class iTextTableRowInfo: NSObject {
     }
 
     /// Erzeugt den umbrechenden Zelltext für Zeichnen und Höhenmessung (identische Basis für beides)
-    public static func cellString(from source: NSAttributedString, range: NSRange) -> NSAttributedString {
+    public static func cellString(from source: NSAttributedString, range: NSRange, lineSpacing: Double = 3.0) -> NSAttributedString {
         guard range.length > 0, range.location + range.length <= source.length else { return NSAttributedString() }
         let m = NSMutableAttributedString(attributedString: source.attributedSubstring(from: range))
         let p = NSMutableParagraphStyle()
         p.lineBreakMode = .byWordWrapping
         p.alignment = .left
-        p.lineSpacing = 2
+        p.lineSpacing = CGFloat(lineSpacing)
         p.hyphenationFactor = 1.0
         m.addAttribute(.paragraphStyle, value: p, range: NSRange(location: 0, length: m.length))
         return m
@@ -443,6 +443,7 @@ public final class MarkdownHighlighter {
                     attributed: attributed,
                     fontFamily: fontFamily,
                     fontSize: fontSize,
+                    lineSpacing: lineSpacing,
                     hiddenFont: hiddenFont,
                     hiddenColor: hiddenColor
                 )
@@ -468,6 +469,7 @@ public final class MarkdownHighlighter {
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed,
+                        lineSpacing: lineSpacing,
                         secondaryColor: secondaryColor
                     )
 
@@ -573,6 +575,8 @@ public final class MarkdownHighlighter {
                     lineText: lineText,
                     lineRange: lineRange,
                     attributed: attributed,
+                    fontSize: fontSize,
+                    lineSpacing: lineSpacing,
                     secondaryColor: secondaryColor
                 )
             }
@@ -580,7 +584,7 @@ public final class MarkdownHighlighter {
             searchIndex = lineRange.location + lineRange.length
         }
 
-        layoutTables(rows: tableRowsForLayout, attributed: attributed, nsString: nsString, styleKey: "\(fontFamily)|\(fontSize)|\(lineSpacing)")
+        layoutTables(rows: tableRowsForLayout, attributed: attributed, nsString: nsString, styleKey: "\(fontFamily)|\(fontSize)|\(lineSpacing)", lineSpacing: lineSpacing)
 
         return attributed
     }
@@ -591,6 +595,7 @@ public final class MarkdownHighlighter {
         attributed: NSMutableAttributedString,
         fontFamily: String,
         fontSize: Double,
+        lineSpacing: Double,
         hiddenFont: PlatformFont,
         hiddenColor: PlatformColor
     ) -> Bool {
@@ -633,6 +638,10 @@ public final class MarkdownHighlighter {
                 let headingStyle = NSMutableParagraphStyle()
                 headingStyle.alignment = .left
                 headingStyle.hyphenationFactor = 0.0
+                let headingScale = CGFloat((fontSize + bonus) / max(1.0, fontSize))
+                let baseBonusSpacing = CGFloat(bonus * 0.25)
+                headingStyle.lineSpacing = CGFloat(lineSpacing) * headingScale + baseBonusSpacing
+                headingStyle.lineBreakStrategy = .pushOut
                 attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
                 return true
             }
@@ -644,6 +653,7 @@ public final class MarkdownHighlighter {
         lineText: String,
         lineRange: NSRange,
         attributed: NSMutableAttributedString,
+        lineSpacing: Double,
         secondaryColor: PlatformColor
     ) -> Bool {
         let nsLine = lineText as NSString
@@ -656,6 +666,8 @@ public final class MarkdownHighlighter {
         let ruleStyle = NSMutableParagraphStyle()
         ruleStyle.alignment = .left
         ruleStyle.hyphenationFactor = 0.0
+        ruleStyle.lineSpacing = CGFloat(lineSpacing)
+        ruleStyle.lineBreakStrategy = .pushOut
         attributed.addAttribute(.paragraphStyle, value: ruleStyle, range: lineRange)
         return true
     }
@@ -909,7 +921,8 @@ public final class MarkdownHighlighter {
         rows: [(range: NSRange, isDelimiter: Bool)],
         attributed: NSMutableAttributedString,
         nsString: NSString,
-        styleKey: String
+        styleKey: String,
+        lineSpacing: Double = 3.0
     ) {
         guard !rows.isEmpty else { return }
         let padX: CGFloat = 7
@@ -1030,7 +1043,7 @@ public final class MarkdownHighlighter {
                 } else {
                     var maxCellHeight: CGFloat = 0
                     for (k, cell) in cellRanges[r].enumerated() {
-                        let str = iTextTableRowInfo.cellString(from: attributed, range: cell)
+                        let str = iTextTableRowInfo.cellString(from: attributed, range: cell, lineSpacing: lineSpacing)
                         let w = max(10, colWidths[k] - 2 * padX)
                         let h = str.boundingRect(with: NSSize(width: w, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading]).height
                         maxCellHeight = max(maxCellHeight, ceil(h))
@@ -1090,6 +1103,8 @@ public final class MarkdownHighlighter {
         lineText: String,
         lineRange: NSRange,
         attributed: NSMutableAttributedString,
+        fontSize: Double,
+        lineSpacing: Double,
         secondaryColor: PlatformColor
     ) {
         // Tabellenzeilen: Pipes hervorheben
@@ -1118,9 +1133,22 @@ public final class MarkdownHighlighter {
             if afterHashIndex < lineText.endIndex && lineText[afterHashIndex] == " " {
                 let prefixRange = NSRange(location: lineRange.location, length: count + 1)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: prefixRange)
+                let bonus: Double
+                switch count {
+                case 1: bonus = 6.0
+                case 2: bonus = 4.0
+                case 3: bonus = 2.5
+                case 4: bonus = 1.5
+                case 5: bonus = 0.8
+                default: bonus = 0.4
+                }
                 let headingStyle = NSMutableParagraphStyle()
                 headingStyle.alignment = .left
                 headingStyle.hyphenationFactor = 0.0
+                let headingScale = CGFloat((fontSize + bonus) / max(1.0, fontSize))
+                let baseBonusSpacing = CGFloat(bonus * 0.25)
+                headingStyle.lineSpacing = CGFloat(lineSpacing) * headingScale + baseBonusSpacing
+                headingStyle.lineBreakStrategy = .pushOut
                 attributed.addAttribute(.paragraphStyle, value: headingStyle, range: lineRange)
             }
             return
