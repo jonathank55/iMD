@@ -390,8 +390,21 @@ public final class MarkdownHighlighter {
                 continue
             }
 
-            let cursorIntersects = (selectedRange.location != NSNotFound) &&
-                (selectedRange.location >= lineRange.location && selectedRange.location <= (lineRange.location + lineRange.length))
+            var lineStart = 0
+            var lineEnd = 0
+            var contentsEnd = 0
+            nsString.getLineStart(&lineStart, end: &lineEnd, contentsEnd: &contentsEnd, for: lineRange)
+
+            let cursorIntersects: Bool
+            if selectedRange.location == NSNotFound {
+                cursorIntersects = false
+            } else if selectedRange.length == 0 {
+                cursorIntersects = (selectedRange.location >= lineStart && selectedRange.location <= contentsEnd)
+            } else {
+                let selStart = selectedRange.location
+                let selEnd = selectedRange.location + selectedRange.length
+                cursorIntersects = (selStart < contentsEnd && selEnd > lineStart) || (contentsEnd == lineStart && selStart == lineStart)
+            }
 
             if !cursorIntersects {
                 // Live Preview: Alle Markdown-Elemente typografisch veredelt

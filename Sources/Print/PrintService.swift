@@ -177,7 +177,7 @@ public final class PrintService {
         return fallback.isEmpty ? "a4" : fallback
     }
 
-    private func buildTypstDocument(
+    func buildTypstDocument(
         text: String,
         isMarkdown: Bool,
         title: String?,
@@ -461,10 +461,17 @@ public final class PrintService {
                 continue
             }
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            var parts = trimmed.components(separatedBy: "|")
+            // Maskierte Pipes (\|) bleiben Zellinhalt und trennen keine Spalten
+            let sentinel = "\u{FFF4}"
+            let protected = trimmed.replacingOccurrences(of: "\\|", with: sentinel)
+            var parts = protected.components(separatedBy: "|")
             if parts.first?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeFirst() }
             if parts.last?.trimmingCharacters(in: .whitespaces).isEmpty == true { parts.removeLast() }
-            let cells = parts.map { convertInlineMarkdown($0.trimmingCharacters(in: .whitespaces)) }
+            // Nach maskierten Unterstrichen entsteht ein Umbruchpunkt, damit lange Namen (z. B. FORMATVORGABE_SYSTEMDATEIEN) nicht über die Zelle ragen
+            let cells = parts.map {
+                convertInlineMarkdown($0.replacingOccurrences(of: sentinel, with: "|").trimmingCharacters(in: .whitespaces))
+                    .replacingOccurrences(of: "\\_", with: "\\_#sym.zws;")
+            }
             if !cells.isEmpty {
                 parsedRows.append(cells)
             }
@@ -473,22 +480,34 @@ public final class PrintService {
         guard !parsedRows.isEmpty else { return "" }
         let colCount = parsedRows.map { $0.count }.max() ?? 1
 
-        var typstCode = "\n#table(\n  columns: \(colCount),\n  stroke: 0.5pt + luma(180),\n  fill: (x, y) => if y == 0 { luma(240) } else { none },\n"
+        // Spaltenbreiten: proportional zur längsten Zelle (gedeckelt), damit alle Spalten vollständig in die Seitenbreite passen
+        var maxLens = [Int](repeating: 1, count: colCount)
+        for row in parsedRows {
+            for (i, cell) in row.enumerated() {
+                maxLens[i] = max(maxLens[i], min(cell.count, 80))
+            }
+        }
+        // Kurze Spalten passen sich dem Inhalt an (auto), lange teilen den Restplatz proportional (fr)
+        let weights = maxLens.map { len -> String in
+            len <= 26 ? "auto" : String(format: "%.2ffr", Double(len).squareRoot())
+        }
+
+        var typstCode = "\n#block(width: 100%)[\n#set text(size: 0.88em, hyphenate: true)\n#set par(justify: false, leading: 0.5em)\n#table(\n  columns: (\(weights.joined(separator: ", "))),\n  inset: (x: 5pt, y: 4.5pt),\n  align: left + top,\n  stroke: 0.5pt + luma(150),\n  fill: (x, y) => if y == 0 { luma(232) } else if calc.even(y) { luma(247) } else { none },\n"
         for (idx, row) in parsedRows.enumerated() {
             var paddedRow = row
             while paddedRow.count < colCount {
                 paddedRow.append("")
             }
-            let isHeader = (idx == 0)
-            for cell in paddedRow {
-                if isHeader {
-                    typstCode += "  [*\(cell)*],\n"
-                } else {
-                    typstCode += "  [\(cell)],\n"
-                }
+            let cellsCode = paddedRow.map { cell in
+                idx == 0 ? "[*\(cell)*]" : "[\(cell)]"
+            }.joined(separator: ", ")
+            if idx == 0 {
+                typstCode += "  table.header(\(cellsCode)),\n"
+            } else {
+                typstCode += "  \(cellsCode),\n"
             }
         }
-        typstCode += ")\n"
+        typstCode += ")\n]\n"
         return typstCode
     }
 
@@ -543,7 +562,7 @@ public final class PrintService {
             let matches = rawRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
             for match in matches.reversed() {
                 let matchedStr = (res as NSString).substring(with: match.range)
-                let placeholder = "\u{FFF0}RAW_\(rawPlaceholders.count)\u{FFF1}"
+                let placeholder = "\u{FFF0}RAW\(rawPlaceholders.count)\u{FFF1}"
                 rawPlaceholders.append(matchedStr)
                 res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
             }
@@ -556,7 +575,7 @@ public final class PrintService {
             let matches = mathRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
             for match in matches.reversed() {
                 let formula = (res as NSString).substring(with: match.range(at: 1))
-                let placeholder = "\u{FFF0}MTH_\(mathPlaceholders.count)\u{FFF1}"
+                let placeholder = "\u{FFF0}MTH\(mathPlaceholders.count)\u{FFF1}"
                 mathPlaceholders.append("$ \(formula) $")
                 res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
             }
@@ -571,8 +590,8 @@ public final class PrintService {
                 let hasAlias = match.numberOfRanges >= 3 && match.range(at: 2).location != NSNotFound
                 let textToShow = hasAlias ? (res as NSString).substring(with: match.range(at: 2)) : (res as NSString).substring(with: match.range(at: 1))
                 let formatted = convertInlineMarkdown(textToShow)
-                let placeholder = "\u{FFF0}WIKI_\(wikiPlaceholders.count)\u{FFF1}"
-                wikiPlaceholders.append("#text(fill: rgb(\"0969da\"), underline: true)[\(formatted)]")
+                let placeholder = "\u{FFF0}WIKI\(wikiPlaceholders.count)\u{FFF1}"
+                wikiPlaceholders.append("#underline[#text(fill: rgb(\"0969da\"))[\(formatted)]]")
                 res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
             }
         }
@@ -587,7 +606,7 @@ public final class PrintService {
                 let linkUrl = (res as NSString).substring(with: match.range(at: 2))
                 let formattedLinkText = convertInlineMarkdown(linkText)
                 let typstLink = "#link(\"\(linkUrl)\")[\(formattedLinkText)]"
-                let placeholder = "\u{FFF0}LNK_\(linkPlaceholders.count)\u{FFF1}"
+                let placeholder = "\u{FFF0}LNK\(linkPlaceholders.count)\u{FFF1}"
                 linkPlaceholders.append(typstLink)
                 res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
             }
@@ -599,7 +618,7 @@ public final class PrintService {
             let matches = autoRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
             for match in matches.reversed() {
                 let url = (res as NSString).substring(with: match.range(at: 1))
-                let placeholder = "\u{FFF0}LNK_\(linkPlaceholders.count)\u{FFF1}"
+                let placeholder = "\u{FFF0}LNK\(linkPlaceholders.count)\u{FFF1}"
                 linkPlaceholders.append("#link(\"\(url)\")[\(url)]")
                 res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
             }
@@ -613,6 +632,8 @@ public final class PrintService {
             .replacingOccurrences(of: "@", with: "\\@")
             .replacingOccurrences(of: "<", with: "\\<")
             .replacingOccurrences(of: ">", with: "\\>")
+            .replacingOccurrences(of: "[", with: "\\[")
+            .replacingOccurrences(of: "]", with: "\\]")
 
         // 7. Markdown-Formatierungen anwenden
         // Highlights: ==Text== -> #highlight[Text]
@@ -625,39 +646,48 @@ public final class PrintService {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#strike[$1]")
         }
 
-        // Fett-Kursiv: ***text*** und ___text___ -> *_\(text)_*
+        // Formatierungen werden zunächst als private Marker gesetzt (Fett U+FFF2, Kursiv U+FFF3),
+        // damit verbleibende einzelne Steuerzeichen (z. B. [[_INDEX]]) anschließend maskiert werden können.
+        // Fett-Kursiv: ***text*** und ___text___
         if let regex = try? NSRegularExpression(pattern: "(\\*\\*\\*|___)(.+?)\\1", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*_$2_*")
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "\u{FFF2}\u{FFF3}$2\u{FFF3}\u{FFF2}")
         }
 
-        // Fett: **text** und __text__ -> *text*
+        // Fett: **text** und __text__
         if let regex = try? NSRegularExpression(pattern: "(\\*\\*|__)(.+?)\\1", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*$2*")
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "\u{FFF2}$2\u{FFF2}")
         }
 
         // Kursiv: *text* und _text_
         if let regex = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "\u{FFF3}$1\u{FFF3}")
         }
         if let regex = try? NSRegularExpression(pattern: "(?<![\\w_])_([^_]+?)_(?![\\w_])", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "\u{FFF3}$1\u{FFF3}")
         }
+
+        // Nicht gepaarte Steuerzeichen als Klartext maskieren, danach Marker in Typst-Syntax umsetzen
+        res = res
+            .replacingOccurrences(of: "*", with: "\\*")
+            .replacingOccurrences(of: "_", with: "\\_")
+            .replacingOccurrences(of: "\u{FFF2}", with: "*")
+            .replacingOccurrences(of: "\u{FFF3}", with: "_")
 
         // 8. Platzhalter wieder einsetzen
         for (idx, typstLink) in linkPlaceholders.enumerated() {
-            res = res.replacingOccurrences(of: "\u{FFF0}LNK_\(idx)\u{FFF1}", with: typstLink)
+            res = res.replacingOccurrences(of: "\u{FFF0}LNK\(idx)\u{FFF1}", with: typstLink)
         }
 
         for (idx, wikiLink) in wikiPlaceholders.enumerated() {
-            res = res.replacingOccurrences(of: "\u{FFF0}WIKI_\(idx)\u{FFF1}", with: wikiLink)
+            res = res.replacingOccurrences(of: "\u{FFF0}WIKI\(idx)\u{FFF1}", with: wikiLink)
         }
 
         for (idx, mth) in mathPlaceholders.enumerated() {
-            res = res.replacingOccurrences(of: "\u{FFF0}MTH_\(idx)\u{FFF1}", with: mth)
+            res = res.replacingOccurrences(of: "\u{FFF0}MTH\(idx)\u{FFF1}", with: mth)
         }
 
         for (idx, rawStr) in rawPlaceholders.enumerated() {
-            res = res.replacingOccurrences(of: "\u{FFF0}RAW_\(idx)\u{FFF1}", with: rawStr)
+            res = res.replacingOccurrences(of: "\u{FFF0}RAW\(idx)\u{FFF1}", with: rawStr)
         }
 
         return res

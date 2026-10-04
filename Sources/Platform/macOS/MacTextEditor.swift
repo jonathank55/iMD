@@ -230,6 +230,7 @@ public struct MacTextEditor: NSViewRepresentable {
                 coord.previousWindowDelegate = window.delegate
                 window.delegate = coord
             }
+            window.makeFirstResponder(tv)
         }
 
         return scrollView
@@ -288,9 +289,8 @@ public struct MacTextEditor: NSViewRepresentable {
                 guard let self = self, let tv = self.textView else { return }
                 tv.window?.isDocumentEdited = false
                 self.initialLoadedText = tv.string
-                if let doc = tv.window?.windowController?.document as? NSDocument {
-                    doc.updateChangeCount(.changeCleared)
-                }
+                let doc = (tv.window?.windowController?.document as? NSDocument) ?? (tv.window.flatMap { NSDocumentController.shared.document(for: $0) })
+                doc?.updateChangeCount(.changeCleared)
             }
         }
 
@@ -428,7 +428,9 @@ public struct MacTextEditor: NSViewRepresentable {
         }
 
         public func windowShouldClose(_ sender: NSWindow) -> Bool {
-            guard sender.isDocumentEdited else {
+            let doc = (sender.windowController?.document as? NSDocument) ?? NSDocumentController.shared.document(for: sender)
+            let isEdited = sender.isDocumentEdited || (doc?.isDocumentEdited ?? false)
+            guard isEdited else {
                 return previousWindowDelegate?.windowShouldClose?(sender) ?? true
             }
 
@@ -449,14 +451,23 @@ public struct MacTextEditor: NSViewRepresentable {
             let response = alert.runModal()
             switch response {
             case .alertFirstButtonReturn: // Sichern
-                NSApp.sendAction(#selector(NSDocument.save(_:)), to: nil, from: nil)
-                sender.isDocumentEdited = false
-                return true
+                if let doc = doc {
+                    if doc.fileURL != nil {
+                        doc.save(nil)
+                        sender.isDocumentEdited = false
+                        return true
+                    } else {
+                        NSApp.sendAction(#selector(NSDocument.save(_:)), to: nil, from: nil)
+                        return false
+                    }
+                } else {
+                    NSApp.sendAction(#selector(NSDocument.save(_:)), to: nil, from: nil)
+                    sender.isDocumentEdited = false
+                    return true
+                }
             case .alertSecondButtonReturn: // Nicht sichern
                 sender.isDocumentEdited = false
-                if let doc = sender.windowController?.document as? NSDocument {
-                    doc.updateChangeCount(.changeCleared)
-                }
+                doc?.updateChangeCount(.changeCleared)
                 return true
             default: // Abbrechen
                 return false
@@ -577,7 +588,8 @@ public struct MacTextEditor: NSViewRepresentable {
             if let window = tv.window {
                 let hasChanges = (initialLoadedText != nil) ? (currentText != initialLoadedText) : !currentText.isEmpty
                 window.isDocumentEdited = hasChanges
-                if let doc = window.windowController?.document as? NSDocument {
+                let doc = (window.windowController?.document as? NSDocument) ?? NSDocumentController.shared.document(for: window)
+                if let doc = doc {
                     if hasChanges {
                         doc.updateChangeCount(.changeDone)
                     } else {
