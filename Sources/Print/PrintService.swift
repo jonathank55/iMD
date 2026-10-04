@@ -42,11 +42,18 @@ public final class PrintService {
             return
         }
 
-        let candidates = [
+        var candidates: [String] = []
+        if let bundleTypst = Bundle.main.url(forAuxiliaryExecutable: "typst")?.path {
+            candidates.append(bundleTypst)
+        }
+        candidates.append(Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/typst").path)
+        candidates.append(Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/typst").path)
+        candidates.append(contentsOf: [
             "/opt/homebrew/bin/typst",
             "/usr/local/bin/typst",
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin/typst").path,
             FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cargo/bin/typst").path
-        ]
+        ])
         var typstExecutable: String?
         for c in candidates {
             if FileManager.default.isExecutableFile(atPath: c) {
@@ -491,13 +498,48 @@ public final class PrintService {
     }
 
     private func convertInlineMarkdown(_ text: String) -> String {
-        var res = text
+        guard !text.isEmpty else { return "" }
 
-        // Links: [Text](URL) -> #link("URL")[Text]
-        if let regex = try? NSRegularExpression(pattern: "\\[([^\\]]+)\\]\\(([^\\)]+)\\)", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#link(\"$2\")[$1]")
+        // 1. Raw Inline-Codeblöcke schützen (`...`)
+        var rawPlaceholders: [String] = []
+        var res = text
+        let rawPattern = "`([^`]+)`"
+        if let rawRegex = try? NSRegularExpression(pattern: rawPattern, options: []) {
+            let matches = rawRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let matchedStr = (res as NSString).substring(with: match.range)
+                let placeholder = "\u{FFF0}RAW_\(rawPlaceholders.count)\u{FFF1}"
+                rawPlaceholders.append(matchedStr)
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
         }
 
+        // 2. Links schützen ([Text](URL))
+        var linkPlaceholders: [String] = []
+        let linkPattern = "\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
+        if let linkRegex = try? NSRegularExpression(pattern: linkPattern, options: []) {
+            let matches = linkRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let linkText = (res as NSString).substring(with: match.range(at: 1))
+                let linkUrl = (res as NSString).substring(with: match.range(at: 2))
+                let formattedLinkText = convertInlineMarkdown(linkText)
+                let typstLink = "#link(\"\(linkUrl)\")[\(formattedLinkText)]"
+                let placeholder = "\u{FFF0}LNK_\(linkPlaceholders.count)\u{FFF1}"
+                linkPlaceholders.append(typstLink)
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
+        }
+
+        // 3. Typst-Sonderzeichen im verbleibenden Text maskieren
+        res = res
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "#", with: "\\#")
+            .replacingOccurrences(of: "$", with: "\\$")
+            .replacingOccurrences(of: "@", with: "\\@")
+            .replacingOccurrences(of: "<", with: "\\<")
+            .replacingOccurrences(of: ">", with: "\\>")
+
+        // 4. Markdown-Formatierungen anwenden
         // Highlights: ==Text== -> #highlight[Text]
         if let regex = try? NSRegularExpression(pattern: "==([^=]+?)==", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#highlight[$1]")
@@ -521,6 +563,15 @@ public final class PrintService {
         // Kursiv: *text* -> _text_ (nur wenn nicht Teil eines Worts)
         if let regex = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
+        }
+
+        // 5. Platzhalter wieder einsetzen
+        for (idx, typstLink) in linkPlaceholders.enumerated() {
+            res = res.replacingOccurrences(of: "\u{FFF0}LNK_\(idx)\u{FFF1}", with: typstLink)
+        }
+
+        for (idx, rawStr) in rawPlaceholders.enumerated() {
+            res = res.replacingOccurrences(of: "\u{FFF0}RAW_\(idx)\u{FFF1}", with: rawStr)
         }
 
         return res

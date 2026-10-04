@@ -12,18 +12,76 @@ RESET='\033[0m'
 echo -e "\n${BLUE}=== iText — Installations- & Bereitstellungsskript ===${RESET}"
 echo -e "${BLUE}───────────────────────────────────────────────────────────────────────────${RESET}"
 
-# 1. Typst-Prüfung
-echo -e "${BLUE}▸${RESET} ${BOLD}Schritt 1:${RESET} Typst-Compiler überprüfen..."
-if ! command -v typst &>/dev/null; then
-    echo -e "${YELLOW}⚠ Typst nicht gefunden. Installation via Homebrew...${RESET}"
-    if command -v brew &>/dev/null; then
-        brew install typst
+# 1. Typst-Prüfung und -Installation
+echo -e "${BLUE}▸${RESET} ${BOLD}Schritt 1:${RESET} Typst-Compiler überprüfen und sicherstellen..."
+
+resolve_typst_binary() {
+    if command -v typst &>/dev/null; then
+        command -v typst
+    elif [ -x "/opt/homebrew/bin/typst" ]; then
+        echo "/opt/homebrew/bin/typst"
+    elif [ -x "/usr/local/bin/typst" ]; then
+        echo "/usr/local/bin/typst"
+    elif [ -x "$HOME/.local/bin/typst" ]; then
+        echo "$HOME/.local/bin/typst"
+    elif [ -x "$HOME/.cargo/bin/typst" ]; then
+        echo "$HOME/.cargo/bin/typst"
     else
-        echo -e "${RED}✗ Fehler: Homebrew wird zur automatischen Installation von Typst benötigt.${RESET}"
-        exit 1
+        echo ""
     fi
+}
+
+TYPST_BIN="$(resolve_typst_binary)"
+
+if [ -z "$TYPST_BIN" ]; then
+    echo -e "${YELLOW}⚠ Typst nicht gefunden. Automatische Installation wird eingeleitet...${RESET}"
+    
+    BREW_BIN=""
+    if command -v brew &>/dev/null; then
+        BREW_BIN="brew"
+    elif [ -x "/opt/homebrew/bin/brew" ]; then
+        BREW_BIN="/opt/homebrew/bin/brew"
+    elif [ -x "/usr/local/bin/brew" ]; then
+        BREW_BIN="/usr/local/bin/brew"
+    fi
+
+    if [ -n "$BREW_BIN" ]; then
+        echo -e "${BLUE}▸${RESET} Installiere Typst via Homebrew ($BREW_BIN install typst)..."
+        "$BREW_BIN" install typst || true
+        TYPST_BIN="$(resolve_typst_binary)"
+    fi
+
+    if [ -z "$TYPST_BIN" ]; then
+        echo -e "${YELLOW}⚠ Homebrew nicht verfügbar oder Installation fehlgeschlagen. Lade statisches Typst-Binary herunter...${RESET}"
+        mkdir -p "$HOME/.local/bin"
+        ARCH="$(uname -m)"
+        if [ "$ARCH" = "arm64" ]; then
+            TAR_NAME="typst-aarch64-apple-darwin.tar.xz"
+        else
+            TAR_NAME="typst-x86_64-apple-darwin.tar.xz"
+        fi
+        TMP_DIR="$(mktemp -d)"
+        CURL_URL="https://github.com/typst/typst/releases/latest/download/$TAR_NAME"
+        if curl -sSL -f "$CURL_URL" -o "$TMP_DIR/$TAR_NAME"; then
+            tar -xf "$TMP_DIR/$TAR_NAME" -C "$TMP_DIR"
+            EXTRACTED_BIN="$(find "$TMP_DIR" -name typst -type f | head -n 1)"
+            if [ -n "$EXTRACTED_BIN" ]; then
+                cp -f "$EXTRACTED_BIN" "$HOME/.local/bin/typst"
+                chmod +x "$HOME/.local/bin/typst"
+                TYPST_BIN="$HOME/.local/bin/typst"
+                echo -e "${GREEN}✓ OK${RESET} Typst nach ~/.local/bin/typst installiert."
+            fi
+        fi
+        rm -rf "$TMP_DIR"
+    fi
+fi
+
+TYPST_BIN="$(resolve_typst_binary)"
+if [ -n "$TYPST_BIN" ] && [ -x "$TYPST_BIN" ]; then
+    echo -e "${GREEN}✓ OK${RESET} Typst ist einsatzbereit: $($TYPST_BIN --version) [${TYPST_BIN}]"
 else
-    echo -e "${GREEN}✓ OK${RESET} Typst ist installiert: $(typst --version)"
+    echo -e "${RED}✗ Fehler: Typst konnte nicht automatisch installiert werden.${RESET}"
+    exit 1
 fi
 
 # 2. iText kompilieren
@@ -46,6 +104,13 @@ cp "$SCRIPT_DIR/Configuration/Info-macOS.plist" "$APP_DIR/Contents/Info.plist"
 if [ -d "$SCRIPT_DIR/Fonts" ]; then
     rm -rf "$APP_DIR/Contents/Resources/Fonts"
     cp -R "$SCRIPT_DIR/Fonts" "$APP_DIR/Contents/Resources/Fonts"
+fi
+
+# Typst-Binary direkt in das App-Bundle einbetten (autarker Druck-Support)
+if [ -n "$TYPST_BIN" ] && [ -x "$TYPST_BIN" ]; then
+    cp -f "$TYPST_BIN" "$APP_DIR/Contents/MacOS/typst"
+    chmod +x "$APP_DIR/Contents/MacOS/typst"
+    echo -e "${GREEN}✓ OK${RESET} Typst-Compiler autark im App-Bundle integriert."
 fi
 
 sed -i '' 's/\$(EXECUTABLE_NAME)/iText/g; s/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.jonathan.iText/g; s/\$(PRODUCT_NAME)/iText/g' "$APP_DIR/Contents/Info.plist"
