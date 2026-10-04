@@ -14,12 +14,24 @@ public final class MarkdownHighlighter {
         (try? NSRegularExpression(pattern: "\\*\\*\\*(.+?)\\*\\*\\*", options: [])) ?? NSRegularExpression()
     }()
 
+    private static let boldItalicUnderscoreRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "___([^_]+?)___", options: [])) ?? NSRegularExpression()
+    }()
+
     private static let boldRegex: NSRegularExpression = {
         (try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: [])) ?? NSRegularExpression()
     }()
 
+    private static let boldUnderscoreRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "__([^_]+?)__", options: [])) ?? NSRegularExpression()
+    }()
+
     private static let italicRegex: NSRegularExpression = {
         (try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let italicUnderscoreRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "(?<![\\w_])_([^_]+?)_(?![\\w_])", options: [])) ?? NSRegularExpression()
     }()
 
     private static let codeRegex: NSRegularExpression = {
@@ -38,12 +50,56 @@ public final class MarkdownHighlighter {
         (try? NSRegularExpression(pattern: "\\[([^\\]]+)\\]\\(([^\\)]+)\\)", options: [])) ?? NSRegularExpression()
     }()
 
+    private static let wikiLinkRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "\\[\\[([^\\]|]+)(?:\\|([^\\]]+))?\\]\\]", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let autolinkRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "<(https?://[^>]+|mailto:[^>]+)>", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let inlineMathRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "(?<!\\$)\\$([^\\$\n]+?)\\$(?!\\$)", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let kbdRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "<kbd>([^<]+?)</kbd>", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let footnoteRefRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "\\[\\^([^\\]]+)\\]", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let imageRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "!\\[([^\\]]*)\\]\\(([^\\)]+)\\)", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let wikiImageRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "!\\[\\[([^\\]]+)\\]\\]", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let calloutRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "^([ \t]*>)[ \t]*\\[!([a-zA-Z]+)\\][ \t]*(.*)$", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let quoteRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "^([ \t]*>)[ \t]?(.*)$", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let hrRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "^[ \t]*([-*_])[ \t]*\\1[ \t]*\\1[ \t]*$", options: [])) ?? NSRegularExpression()
+    }()
+
     private static let taskUncheckedRegex: NSRegularExpression = {
         (try? NSRegularExpression(pattern: "^([ \t]*[-*+])[ \t]+(\\[ \\])[ \t]+(.*)$", options: [])) ?? NSRegularExpression()
     }()
 
     private static let taskCheckedRegex: NSRegularExpression = {
         (try? NSRegularExpression(pattern: "^([ \t]*[-*+])[ \t]+(\\[[xX]\\])[ \t]+(.*)$", options: [])) ?? NSRegularExpression()
+    }()
+
+    private static let taskOtherRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "^([ \t]*[-*+])[ \t]+(\\[[-/]\\])[ \t]+(.*)$", options: [])) ?? NSRegularExpression()
     }()
 
     private static let bulletListRegex: NSRegularExpression = {
@@ -54,12 +110,8 @@ public final class MarkdownHighlighter {
         (try? NSRegularExpression(pattern: "^([ \t]*)([0-9]+[.)])[ \t]+(.*)$", options: [])) ?? NSRegularExpression()
     }()
 
-    private static let quoteRegex: NSRegularExpression = {
-        (try? NSRegularExpression(pattern: "^([ \t]*>)[ \t]?(.*)$", options: [])) ?? NSRegularExpression()
-    }()
-
-    private static let hrRegex: NSRegularExpression = {
-        (try? NSRegularExpression(pattern: "^[ \t]*([-*_])[ \t]*\\1[ \t]*\\1[ \t]*$", options: [])) ?? NSRegularExpression()
+    private static let footnoteDefRegex: NSRegularExpression = {
+        (try? NSRegularExpression(pattern: "^([ \t]*\\[\\^[^\\]]+\\]:)[ \t]*(.*)$", options: [])) ?? NSRegularExpression()
     }()
 
     private init() {}
@@ -188,6 +240,28 @@ public final class MarkdownHighlighter {
         return style
     }
 
+    public static func isTableRow(_ lineText: String) -> Bool {
+        let trimmed = lineText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("|") && trimmed.hasSuffix("|") && trimmed.count >= 2 else { return false }
+        return true
+    }
+
+    public static func isTableDelimiterRow(_ lineText: String) -> Bool {
+        let trimmed = lineText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("|") && trimmed.hasSuffix("|") && trimmed.count >= 3 else { return false }
+        let inner = trimmed.dropFirst().dropLast()
+        guard !inner.isEmpty else { return false }
+        var hasDash = false
+        for ch in inner {
+            if ch == "-" {
+                hasDash = true
+            } else if ch != "|" && ch != ":" && ch != " " && ch != "\t" {
+                return false
+            }
+        }
+        return hasDash
+    }
+
     public func highlight(
         text: String,
         isMarkdown: Bool,
@@ -228,6 +302,8 @@ public final class MarkdownHighlighter {
         let nsString = text as NSString
         var searchIndex = 0
         var inCodeBlock = false
+        var inMathBlock = false
+        var tableRowCounter = 0
 
         while searchIndex < nsString.length {
             let lineRange = nsString.lineRange(for: NSRange(location: searchIndex, length: 0))
@@ -236,7 +312,25 @@ public final class MarkdownHighlighter {
             let lineText = nsString.substring(with: lineRange)
             let trimmed = lineText.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            // Fenced Code-Block Erkennung (```)
+            // 1. Math-Block Erkennung ($$)
+            if trimmed.hasPrefix("$$") {
+                inMathBlock.toggle()
+                let italicFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
+                attributed.addAttribute(.font, value: italicFont, range: lineRange)
+                attributed.addAttribute(.foregroundColor, value: secondaryColor, range: lineRange)
+                searchIndex = lineRange.location + lineRange.length
+                continue
+            }
+
+            if inMathBlock {
+                let mathFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
+                attributed.addAttribute(.font, value: mathFont, range: lineRange)
+                attributed.addAttribute(.backgroundColor, value: codeBgColor.withAlphaComponent(0.25), range: lineRange)
+                searchIndex = lineRange.location + lineRange.length
+                continue
+            }
+
+            // 2. Fenced Code-Block Erkennung (```)
             if trimmed.hasPrefix("```") {
                 inCodeBlock.toggle()
                 let monoFont = Self.resolveFont(family: fontFamily, size: fontSize - 1.0, mono: true)
@@ -258,7 +352,7 @@ public final class MarkdownHighlighter {
                 (selectedRange.location >= lineRange.location && selectedRange.location <= (lineRange.location + lineRange.length))
 
             if !cursorIntersects {
-                // Live Preview: Alle Markdown-Elemente formatiert und Marker ausgeblendet
+                // Live Preview: Alle Markdown-Elemente typografisch veredelt
 
                 // 1. Überschriften (# bis ######)
                 let isHeading = applyHeadingIfPresent(
@@ -271,7 +365,22 @@ public final class MarkdownHighlighter {
                     hiddenColor: hiddenColor
                 )
 
-                if !isHeading {
+                if isHeading {
+                    tableRowCounter = 0
+                    // Auch innerhalb von Überschriften Inline-Stile anwenden
+                    applyInlineStyles(
+                        lineRange: lineRange,
+                        nsString: nsString,
+                        attributed: attributed,
+                        fontFamily: fontFamily,
+                        fontSize: fontSize,
+                        hiddenFont: hiddenFont,
+                        hiddenColor: hiddenColor,
+                        codeBgColor: codeBgColor,
+                        linkColor: linkColor,
+                        highlightYellow: highlightYellow
+                    )
+                } else {
                     // 2. Trennlinie (---, ***, ___)
                     let isHR = applyHorizontalRuleIfPresent(
                         lineText: lineText,
@@ -280,8 +389,19 @@ public final class MarkdownHighlighter {
                         secondaryColor: secondaryColor
                     )
 
-                    // 3. Zitat (> ...)
-                    let isQuote = !isHR && applyQuoteIfPresent(
+                    // 3. Callout (> [!NOTE], > [!TIP], etc.)
+                    let isCallout = !isHR && applyCalloutIfPresent(
+                        lineText: lineText,
+                        lineRange: lineRange,
+                        attributed: attributed,
+                        fontFamily: fontFamily,
+                        fontSize: fontSize,
+                        hiddenFont: hiddenFont,
+                        hiddenColor: hiddenColor
+                    )
+
+                    // 4. Standard-Zitat (> ...)
+                    let isQuote = !isHR && !isCallout && applyQuoteIfPresent(
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed,
@@ -292,40 +412,64 @@ public final class MarkdownHighlighter {
                         secondaryColor: secondaryColor
                     )
 
-                    // 4. Aufgabenlisten (- [ ] und - [x])
-                    let isTask = !isHR && !isQuote && applyTaskListIfPresent(
+                    // 5. Aufgabenlisten (- [ ], - [x], - [-], - [/])
+                    let isTask = !isHR && !isCallout && !isQuote && applyTaskListIfPresent(
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed,
                         secondaryColor: secondaryColor
                     )
 
-                    // 5. Ungeordnete Listen (- , * , + )
-                    let isBullet = !isHR && !isQuote && !isTask && applyBulletListIfPresent(
+                    // 6. Ungeordnete Listen (- , * , + )
+                    let isBullet = !isHR && !isCallout && !isQuote && !isTask && applyBulletListIfPresent(
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed
                     )
 
-                    // 6. Nummerierte Listen (1. , 2. )
-                    _ = !isHR && !isQuote && !isTask && !isBullet && applyNumberedListIfPresent(
+                    // 7. Nummerierte Listen (1. , 2. )
+                    let isNumbered = !isHR && !isCallout && !isQuote && !isTask && !isBullet && applyNumberedListIfPresent(
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed,
                         secondaryColor: secondaryColor
                     )
 
-                    // 7. Tabellen (| ... |)
-                    let isTable = !isHR && !isQuote && applyTableIfPresent(
+                    // 8. Fußnoten-Definition ([^1]: ...)
+                    let isFootnoteDef = !isHR && !isCallout && !isQuote && !isTask && !isBullet && !isNumbered && applyFootnoteDefIfPresent(
                         lineText: lineText,
                         lineRange: lineRange,
                         attributed: attributed,
-                        fontFamily: fontFamily,
-                        fontSize: fontSize
+                        secondaryColor: secondaryColor
                     )
 
-                    // 8. Inline-Stile (Fett, Kursiv, Code, Durchgestrichen, Highlight, Links)
-                    if !isHR && !isTable {
+                    // 9. Tabellen (| ... |)
+                    let tableResult = (!isHR && !isCallout && !isQuote && !isFootnoteDef) ? applyTableIfPresent(
+                        lineText: lineText,
+                        lineRange: lineRange,
+                        nsString: nsString,
+                        tableRowIndex: tableRowCounter,
+                        attributed: attributed,
+                        fontFamily: fontFamily,
+                        fontSize: fontSize,
+                        hiddenFont: hiddenFont,
+                        hiddenColor: hiddenColor,
+                        secondaryColor: secondaryColor
+                    ) : (isTable: false, isDelimiter: false)
+
+                    if tableResult.isTable {
+                        if tableResult.isDelimiter {
+                            tableRowCounter = 0
+                        } else {
+                            tableRowCounter += 1
+                        }
+                    } else {
+                        tableRowCounter = 0
+                    }
+
+                    // 10. Inline-Stile (Fett, Kursiv, Code, Durchgestrichen, Highlight, Links, Wiki-Links, Math, etc.)
+                    // Gilt für normalen Fließtext, Zitate, Listen und Tabellenzellen (nicht Trennlinien/Delimiter)
+                    if !isHR && !tableResult.isDelimiter {
                         applyInlineStyles(
                             lineRange: lineRange,
                             nsString: nsString,
@@ -423,6 +567,56 @@ public final class MarkdownHighlighter {
         return true
     }
 
+    private func applyCalloutIfPresent(
+        lineText: String,
+        lineRange: NSRange,
+        attributed: NSMutableAttributedString,
+        fontFamily: String,
+        fontSize: Double,
+        hiddenFont: PlatformFont,
+        hiddenColor: PlatformColor
+    ) -> Bool {
+        let nsLine = lineText as NSString
+        guard let match = Self.calloutRegex.firstMatch(in: lineText, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 3 else {
+            return false
+        }
+
+        let prefixMatch = match.range(at: 1) // >
+        let typeMatch = match.range(at: 2)   // NOTE / TIP / ...
+        let typeStr = nsLine.substring(with: typeMatch).uppercased()
+
+        let calloutColor: PlatformColor
+        switch typeStr {
+        case "NOTE", "INFO", "HINWEIS":
+            calloutColor = NSColor.systemBlue
+        case "TIP", "TIPP", "SUCCESS", "ERFOLG":
+            calloutColor = NSColor.systemGreen
+        case "WARNING", "WARNUNG", "ACHTUNG":
+            calloutColor = NSColor.systemOrange
+        case "CAUTION", "DANGER", "FEHLER":
+            calloutColor = NSColor.systemRed
+        case "IMPORTANT", "WICHTIG":
+            calloutColor = NSColor.systemPurple
+        default:
+            calloutColor = NSColor.controlAccentColor
+        }
+
+        let globalPrefix = NSRange(location: lineRange.location + prefixMatch.location, length: prefixMatch.length)
+        attributed.addAttribute(.foregroundColor, value: hiddenColor, range: globalPrefix)
+        attributed.addAttribute(.font, value: hiddenFont, range: globalPrefix)
+
+        let lineLenWithoutNewline = max(0, lineRange.length - (lineText.hasSuffix("\n") ? 1 : 0))
+        let rowRange = NSRange(location: lineRange.location, length: lineLenWithoutNewline)
+        attributed.addAttribute(.backgroundColor, value: calloutColor.withAlphaComponent(0.08), range: rowRange)
+
+        let globalType = NSRange(location: lineRange.location + typeMatch.location, length: typeMatch.length)
+        let boldFont = Self.resolveFont(family: fontFamily, size: fontSize, bold: true)
+        attributed.addAttribute(.foregroundColor, value: calloutColor, range: globalType)
+        attributed.addAttribute(.font, value: boldFont, range: globalType)
+
+        return true
+    }
+
     private func applyQuoteIfPresent(
         lineText: String,
         lineRange: NSRange,
@@ -477,6 +671,15 @@ public final class MarkdownHighlighter {
 
             attributed.addAttribute(.foregroundColor, value: secondaryColor, range: globalMarker)
             return true
+        } else if let match = Self.taskOtherRegex.firstMatch(in: lineText, options: [], range: fullLine), match.numberOfRanges >= 4 {
+            let markerRange = match.range(at: 2) // [-] oder [/]
+            let contentRange = match.range(at: 3)
+            let globalMarker = NSRange(location: lineRange.location + markerRange.location, length: markerRange.length)
+            let globalContent = NSRange(location: lineRange.location + contentRange.location, length: contentRange.length)
+
+            attributed.addAttribute(.foregroundColor, value: NSColor.systemOrange, range: globalMarker)
+            attributed.addAttribute(.foregroundColor, value: secondaryColor, range: globalContent)
+            return true
         }
         return false
     }
@@ -513,19 +716,123 @@ public final class MarkdownHighlighter {
         return true
     }
 
-    private func applyTableIfPresent(
+    private func applyFootnoteDefIfPresent(
         lineText: String,
         lineRange: NSRange,
         attributed: NSMutableAttributedString,
-        fontFamily: String,
-        fontSize: Double
+        secondaryColor: PlatformColor
     ) -> Bool {
-        let trimmed = lineText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix("|") && trimmed.hasSuffix("|") && trimmed.contains("|") else { return false }
+        let nsLine = lineText as NSString
+        guard let match = Self.footnoteDefRegex.firstMatch(in: lineText, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 2 else { return false }
 
-        let monoFont = Self.resolveFont(family: fontFamily, size: fontSize - 0.5, mono: true)
-        attributed.addAttribute(.font, value: monoFont, range: lineRange)
+        let markerRange = match.range(at: 1)
+        let globalMarker = NSRange(location: lineRange.location + markerRange.location, length: markerRange.length)
+        attributed.addAttribute(.foregroundColor, value: secondaryColor, range: globalMarker)
         return true
+    }
+
+    private func applyTableIfPresent(
+        lineText: String,
+        lineRange: NSRange,
+        nsString: NSString,
+        tableRowIndex: Int,
+        attributed: NSMutableAttributedString,
+        fontFamily: String,
+        fontSize: Double,
+        hiddenFont: PlatformFont,
+        hiddenColor: PlatformColor,
+        secondaryColor: PlatformColor
+    ) -> (isTable: Bool, isDelimiter: Bool) {
+        guard Self.isTableRow(lineText) else { return (false, false) }
+
+        let lineLenWithoutNewline = max(0, lineRange.length - (lineText.hasSuffix("\n") ? 1 : 0))
+
+        // 1. Fall: Delimiter-Zeile (|---|---|---|)
+        if Self.isTableDelimiterRow(lineText) {
+            let delimiterRange = NSRange(location: lineRange.location, length: lineLenWithoutNewline)
+            // Die Zeichen der Delimiter-Zeile unsichtbar machen und durch eine feine Trennlinie ersetzen
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: delimiterRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: delimiterRange)
+            attributed.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: delimiterRange)
+            attributed.addAttribute(.strikethroughColor, value: NSColor.separatorColor, range: delimiterRange)
+            return (true, true)
+        }
+
+        let rowContentRange = NSRange(location: lineRange.location, length: lineLenWithoutNewline)
+
+        // Prüfen, ob dies die Header-Zeile ist (nächste Zeile ist Delimiter)
+        let nextLineStart = lineRange.location + lineRange.length
+        var isHeader = false
+        if nextLineStart < nsString.length {
+            let nextLineRange = nsString.lineRange(for: NSRange(location: nextLineStart, length: 0))
+            let nextLineText = nsString.substring(with: nextLineRange)
+            if Self.isTableDelimiterRow(nextLineText) {
+                isHeader = true
+            }
+        }
+
+        if isHeader {
+            // Header-Styling: Dezenter Tabellenkopf-Hintergrund & Fette Schrift
+            let headerBg = NSColor.quaternaryLabelColor.withAlphaComponent(0.35)
+            let headerFont = Self.resolveFont(family: fontFamily, size: fontSize, bold: true)
+            attributed.addAttribute(.backgroundColor, value: headerBg, range: rowContentRange)
+            attributed.addAttribute(.font, value: headerFont, range: rowContentRange)
+
+            // Pipes stylen
+            styleTablePipes(
+                lineText: lineText,
+                lineRange: lineRange,
+                attributed: attributed,
+                outerColor: NSColor.tertiaryLabelColor,
+                innerColor: NSColor.separatorColor
+            )
+        } else {
+            // Datenzeilen-Styling: Normale Leseschriftart des Anwenders (kein Monospace!)
+            let rowFont = Self.resolveFont(family: fontFamily, size: fontSize)
+            attributed.addAttribute(.font, value: rowFont, range: rowContentRange)
+
+            // Dezentes Zebra-Striping für strukturierte Zeilenabgrenzung
+            if tableRowIndex % 2 == 1 {
+                let zebraBg = NSColor.quaternaryLabelColor.withAlphaComponent(0.12)
+                attributed.addAttribute(.backgroundColor, value: zebraBg, range: rowContentRange)
+            }
+
+            // Pipes stylen
+            styleTablePipes(
+                lineText: lineText,
+                lineRange: lineRange,
+                attributed: attributed,
+                outerColor: NSColor.tertiaryLabelColor,
+                innerColor: NSColor.separatorColor.withAlphaComponent(0.7)
+            )
+        }
+
+        return (true, false)
+    }
+
+    private func styleTablePipes(
+        lineText: String,
+        lineRange: NSRange,
+        attributed: NSMutableAttributedString,
+        outerColor: PlatformColor,
+        innerColor: PlatformColor
+    ) {
+        let nsLine = lineText as NSString
+        var pipeIndices: [Int] = []
+        for i in 0..<nsLine.length {
+            if nsLine.character(at: i) == 0x7C { // '|'
+                pipeIndices.append(i)
+            }
+        }
+        guard !pipeIndices.isEmpty else { return }
+        let firstIdx = pipeIndices.first!
+        let lastIdx = pipeIndices.last!
+
+        for idx in pipeIndices {
+            let globalPipeRange = NSRange(location: lineRange.location + idx, length: 1)
+            let color = (idx == firstIdx || idx == lastIdx) ? outerColor : innerColor
+            attributed.addAttribute(.foregroundColor, value: color, range: globalPipeRange)
+        }
     }
 
     private func applyActiveLineStyling(
@@ -534,6 +841,23 @@ public final class MarkdownHighlighter {
         attributed: NSMutableAttributedString,
         secondaryColor: PlatformColor
     ) {
+        // Tabellenzeilen: Pipes hervorheben
+        if Self.isTableRow(lineText) {
+            if Self.isTableDelimiterRow(lineText) {
+                attributed.addAttribute(.foregroundColor, value: secondaryColor, range: lineRange)
+            } else {
+                let nsLine = lineText as NSString
+                for i in 0..<nsLine.length {
+                    if nsLine.character(at: i) == 0x7C {
+                        let r = NSRange(location: lineRange.location + i, length: 1)
+                        attributed.addAttribute(.foregroundColor, value: NSColor.controlAccentColor, range: r)
+                    }
+                }
+            }
+            return
+        }
+
+        // Überschriften: Marker hervorheben
         var count = 0
         for ch in lineText {
             if ch == "#" { count += 1 } else { break }
@@ -544,6 +868,13 @@ public final class MarkdownHighlighter {
                 let prefixRange = NSRange(location: lineRange.location, length: count + 1)
                 attributed.addAttribute(.foregroundColor, value: secondaryColor, range: prefixRange)
             }
+            return
+        }
+
+        // Zitate & Callouts: '>' hervorheben
+        if lineText.hasPrefix(">") {
+            let prefixRange = NSRange(location: lineRange.location, length: 1)
+            attributed.addAttribute(.foregroundColor, value: secondaryColor, range: prefixRange)
         }
     }
 
@@ -560,17 +891,84 @@ public final class MarkdownHighlighter {
         highlightYellow: PlatformColor
     ) {
         let lineText = nsString.substring(with: lineRange)
-        guard lineText.contains("*") || lineText.contains("`") || lineText.contains("~") || lineText.contains("=") || lineText.contains("[") else { return }
+        guard lineText.contains("*") || lineText.contains("_") || lineText.contains("`") ||
+              lineText.contains("~") || lineText.contains("=") || lineText.contains("[") ||
+              lineText.contains("<") || lineText.contains("$") || lineText.contains("!") else {
+            return
+        }
 
-        // Links: [Text](URL)
+        // 1. Bilder: ![Alt](URL) und ![[Bild]]
+        applyCachedRegex(
+            regex: Self.imageRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard matchRanges.count >= 2 else { return }
+            let altMatch = matchRanges[0]
+            attributed.addAttribute(.foregroundColor, value: NSColor.systemTeal, range: fullRange)
+            attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: altMatch)
+        }
+
+        applyCachedRegex(
+            regex: Self.wikiImageRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard let nameMatch = matchRanges.first else { return }
+            attributed.addAttribute(.foregroundColor, value: NSColor.systemTeal, range: fullRange)
+            attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: nameMatch)
+        }
+
+        // 2. Wiki-Links: [[Ziel]] oder [[Ziel|Titel]]
+        applyCachedRegex(
+            regex: Self.wikiLinkRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard matchRanges.count >= 1 else { return }
+            let targetMatch = matchRanges[0]
+            let hasAlias = matchRanges.count >= 2 && matchRanges[1].location != NSNotFound
+
+            if hasAlias {
+                let aliasMatch = matchRanges[1]
+                let prefixLen = aliasMatch.location - fullRange.location
+                let prefixRange = NSRange(location: fullRange.location, length: prefixLen)
+                attributed.addAttribute(.foregroundColor, value: hiddenColor, range: prefixRange)
+                attributed.addAttribute(.font, value: hiddenFont, range: prefixRange)
+
+                let suffixLocation = aliasMatch.location + aliasMatch.length
+                let suffixLen = (fullRange.location + fullRange.length) - suffixLocation
+                if suffixLen > 0 {
+                    let suffixRange = NSRange(location: suffixLocation, length: suffixLen)
+                    attributed.addAttribute(.foregroundColor, value: hiddenColor, range: suffixRange)
+                    attributed.addAttribute(.font, value: hiddenFont, range: suffixRange)
+                }
+
+                attributed.addAttribute(.foregroundColor, value: linkColor, range: aliasMatch)
+                attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: aliasMatch)
+            } else {
+                let openRange = NSRange(location: fullRange.location, length: 2)
+                attributed.addAttribute(.foregroundColor, value: hiddenColor, range: openRange)
+                attributed.addAttribute(.font, value: hiddenFont, range: openRange)
+
+                let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
+                attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
+                attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
+
+                attributed.addAttribute(.foregroundColor, value: linkColor, range: targetMatch)
+                attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: targetMatch)
+            }
+        }
+
+        // 3. Standard-Links: [Text](URL)
         applyCachedRegex(
             regex: Self.linkRegex,
             lineText: lineText,
             lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard matchRange.count >= 2 else { return }
-            let textMatch = matchRange[0]
-            let urlMatch = matchRange[1]
+        ) { fullRange, matchRanges in
+            guard matchRanges.count >= 2 else { return }
+            let textMatch = matchRanges[0]
+            let urlMatch = matchRanges[1]
 
             let openBracket = NSRange(location: fullRange.location, length: 1)
             let midBrackets = NSRange(location: textMatch.location + textMatch.length, length: urlMatch.location + urlMatch.length + 1 - (textMatch.location + textMatch.length))
@@ -584,13 +982,40 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: textMatch)
         }
 
-        // Fett-Kursiv: ***text***
+        // 4. Autolinks: <https://...> oder <mailto:...>
         applyCachedRegex(
-            regex: Self.boldItalicRegex,
+            regex: Self.autolinkRegex,
             lineText: lineText,
             lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
+        ) { fullRange, matchRanges in
+            guard let urlMatch = matchRanges.first else { return }
+            let openRange = NSRange(location: fullRange.location, length: 1)
+            let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
+
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: openRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: openRange)
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
+
+            attributed.addAttribute(.foregroundColor, value: linkColor, range: urlMatch)
+            attributed.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: urlMatch)
+        }
+
+        // 5. Fußnoten-Referenzen: [^1]
+        applyCachedRegex(
+            regex: Self.footnoteRefRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, _ in
+            let smallFont = Self.resolveFont(family: fontFamily, size: max(8.0, fontSize - 3.0), bold: true)
+            attributed.addAttribute(.font, value: smallFont, range: fullRange)
+            attributed.addAttribute(.foregroundColor, value: linkColor, range: fullRange)
+            attributed.addAttribute(.baselineOffset, value: 3.5, range: fullRange)
+        }
+
+        // 6. Fett-Kursiv: ***text*** und ___text___
+        let applyBoldItalic: (NSRange, [NSRange]) -> Void = { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
             let openRange = NSRange(location: fullRange.location, length: 3)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 3, length: 3)
 
@@ -602,32 +1027,12 @@ public final class MarkdownHighlighter {
             let boldItalicFont = Self.resolveFont(family: fontFamily, size: fontSize, bold: true, italic: true)
             attributed.addAttribute(.font, value: boldItalicFont, range: textMatch)
         }
+        applyCachedRegex(regex: Self.boldItalicRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyBoldItalic)
+        applyCachedRegex(regex: Self.boldItalicUnderscoreRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyBoldItalic)
 
-        // Hervorhebung: ==text==
-        applyCachedRegex(
-            regex: Self.highlightRegex,
-            lineText: lineText,
-            lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
-            let openRange = NSRange(location: fullRange.location, length: 2)
-            let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
-
-            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: openRange)
-            attributed.addAttribute(.font, value: hiddenFont, range: openRange)
-            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
-            attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
-
-            attributed.addAttribute(.backgroundColor, value: highlightYellow, range: textMatch)
-        }
-
-        // Fett: **text**
-        applyCachedRegex(
-            regex: Self.boldRegex,
-            lineText: lineText,
-            lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
+        // 7. Fett: **text** und __text__
+        let applyBold: (NSRange, [NSRange]) -> Void = { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
             let openRange = NSRange(location: fullRange.location, length: 2)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
 
@@ -639,14 +1044,12 @@ public final class MarkdownHighlighter {
             let boldFont = Self.resolveFont(family: fontFamily, size: fontSize, bold: true)
             attributed.addAttribute(.font, value: boldFont, range: textMatch)
         }
+        applyCachedRegex(regex: Self.boldRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyBold)
+        applyCachedRegex(regex: Self.boldUnderscoreRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyBold)
 
-        // Kursiv: *text*
-        applyCachedRegex(
-            regex: Self.italicRegex,
-            lineText: lineText,
-            lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
+        // 8. Kursiv: *text* und _text_
+        let applyItalic: (NSRange, [NSRange]) -> Void = { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
             let openRange = NSRange(location: fullRange.location, length: 1)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
 
@@ -658,14 +1061,16 @@ public final class MarkdownHighlighter {
             let italicFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
             attributed.addAttribute(.font, value: italicFont, range: textMatch)
         }
+        applyCachedRegex(regex: Self.italicRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyItalic)
+        applyCachedRegex(regex: Self.italicUnderscoreRegex, lineText: lineText, lineOffset: lineRange.location, handler: applyItalic)
 
-        // Inline-Code: `code`
+        // 9. Inline-Code: `code`
         applyCachedRegex(
             regex: Self.codeRegex,
             lineText: lineText,
             lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
+        ) { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
             let openRange = NSRange(location: fullRange.location, length: 1)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
 
@@ -674,18 +1079,54 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
             attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
 
-            let monoFont = Self.resolveFont(family: fontFamily, size: fontSize, mono: true)
+            let monoFont = Self.resolveFont(family: fontFamily, size: max(10.0, fontSize - 0.5), mono: true)
             attributed.addAttribute(.font, value: monoFont, range: textMatch)
             attributed.addAttribute(.backgroundColor, value: codeBgColor, range: textMatch)
         }
 
-        // Durchgestrichen: ~~text~~
+        // 10. Inline-Mathematik: $formula$
+        applyCachedRegex(
+            regex: Self.inlineMathRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard let mathMatch = matchRanges.first else { return }
+            let openRange = NSRange(location: fullRange.location, length: 1)
+            let closeRange = NSRange(location: fullRange.location + fullRange.length - 1, length: 1)
+
+            attributed.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor.withAlphaComponent(0.6), range: openRange)
+            attributed.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor.withAlphaComponent(0.6), range: closeRange)
+
+            let mathFont = Self.resolveFont(family: fontFamily, size: fontSize, italic: true)
+            attributed.addAttribute(.font, value: mathFont, range: mathMatch)
+            attributed.addAttribute(.backgroundColor, value: codeBgColor.withAlphaComponent(0.3), range: mathMatch)
+        }
+
+        // 11. Hervorhebung: ==text==
+        applyCachedRegex(
+            regex: Self.highlightRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
+            let openRange = NSRange(location: fullRange.location, length: 2)
+            let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
+
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: openRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: openRange)
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
+
+            attributed.addAttribute(.backgroundColor, value: highlightYellow, range: textMatch)
+        }
+
+        // 12. Durchgestrichen: ~~text~~
         applyCachedRegex(
             regex: Self.strikeRegex,
             lineText: lineText,
             lineOffset: lineRange.location
-        ) { fullRange, matchRange in
-            guard let textMatch = matchRange.first else { return }
+        ) { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
             let openRange = NSRange(location: fullRange.location, length: 2)
             let closeRange = NSRange(location: fullRange.location + fullRange.length - 2, length: 2)
 
@@ -695,6 +1136,26 @@ public final class MarkdownHighlighter {
             attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
 
             attributed.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: textMatch)
+        }
+
+        // 13. Tastatur-Tags: <kbd>key</kbd>
+        applyCachedRegex(
+            regex: Self.kbdRegex,
+            lineText: lineText,
+            lineOffset: lineRange.location
+        ) { fullRange, matchRanges in
+            guard let textMatch = matchRanges.first else { return }
+            let openRange = NSRange(location: fullRange.location, length: 5) // <kbd>
+            let closeRange = NSRange(location: fullRange.location + fullRange.length - 6, length: 6) // </kbd>
+
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: openRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: openRange)
+            attributed.addAttribute(.foregroundColor, value: hiddenColor, range: closeRange)
+            attributed.addAttribute(.font, value: hiddenFont, range: closeRange)
+
+            let monoFont = Self.resolveFont(family: fontFamily, size: max(10.0, fontSize - 1.0), mono: true)
+            attributed.addAttribute(.font, value: monoFont, range: textMatch)
+            attributed.addAttribute(.backgroundColor, value: codeBgColor, range: textMatch)
         }
     }
 
@@ -715,6 +1176,8 @@ public final class MarkdownHighlighter {
                 let r = match.range(at: i)
                 if r.location != NSNotFound {
                     groupRanges.append(NSRange(location: lineOffset + r.location, length: r.length))
+                } else {
+                    groupRanges.append(NSRange(location: NSNotFound, length: 0))
                 }
             }
 

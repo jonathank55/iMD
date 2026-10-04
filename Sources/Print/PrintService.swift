@@ -337,30 +337,35 @@ public final class PrintService {
             } else if isHorizontalRule(trimmed) {
                 // 2. Horizontale Trennlinie
                 processed = "#line(length: 100%, stroke: 0.5pt + luma(180))"
+            } else if let callout = matchCallout(trimmed) {
+                // 3. Callouts (> [!NOTE], etc.)
+                let (label, strokeColor, fillColor) = resolveCalloutTheme(callout.type)
+                let body = convertInlineMarkdown(callout.content)
+                processed = "#block(fill: \(fillColor), stroke: (left: 3pt + \(strokeColor)), inset: 8pt, radius: (right: 3pt), width: 100%)[#text(weight: \"bold\", fill: \(strokeColor))[\(label)] \(body)]"
             } else if trimmed.hasPrefix(">") {
-                // 3. Zitate
+                // 4. Zitate
                 var quoteBody = trimmed.dropFirst(1)
                 if quoteBody.hasPrefix(" ") { quoteBody = quoteBody.dropFirst(1) }
                 let formattedQuote = convertInlineMarkdown(String(quoteBody))
                 processed = "#quote[\(formattedQuote)]"
             } else if let taskChecked = matchTaskChecked(line) {
-                // 4. Aufgabenliste (erledigt)
+                // 5. Aufgabenliste (erledigt)
                 let body = convertInlineMarkdown(taskChecked.content)
                 processed = "\(taskChecked.indent)- #box(stroke: 0.8pt + luma(100), width: 0.85em, height: 0.85em, fill: luma(60), baseline: 10%)[] #strike[\(body)]"
             } else if let taskUnchecked = matchTaskUnchecked(line) {
-                // 5. Aufgabenliste (offen)
+                // 6. Aufgabenliste (offen)
                 let body = convertInlineMarkdown(taskUnchecked.content)
                 processed = "\(taskUnchecked.indent)- #box(stroke: 0.8pt + luma(100), width: 0.85em, height: 0.85em, baseline: 10%)[] \(body)"
             } else if let bullet = matchBulletList(line) {
-                // 6. Ungeordnete Aufzählungsliste
+                // 7. Ungeordnete Aufzählungsliste
                 let body = convertInlineMarkdown(bullet.content)
                 processed = "\(bullet.indent)- \(body)"
             } else if let numbered = matchNumberedList(line) {
-                // 7. Nummerierte Liste (Typst + nummeriert automatisch fortlaufend)
+                // 8. Nummerierte Liste (Typst + nummeriert automatisch fortlaufend)
                 let body = convertInlineMarkdown(numbered.content)
                 processed = "\(numbered.indent)+ \(body)"
             } else {
-                // 8. Normaler Fließtext mit Einzügen und Inline-Markdown
+                // 9. Normaler Fließtext mit Einzügen und Inline-Markdown
                 processed = processLineIndentsAndEscaping(processed, isMarkdown: true)
             }
 
@@ -369,6 +374,36 @@ public final class PrintService {
 
         flushTable()
         return resultLines.joined(separator: "\n")
+    }
+
+    private func matchCallout(_ line: String) -> (type: String, content: String)? {
+        let pattern = "^>[ \t]*\\[!([a-zA-Z]+)\\][ \t]*(.*)$"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsLine = line as NSString
+        guard let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: nsLine.length)), match.numberOfRanges >= 2 else { return nil }
+        let typeStr = nsLine.substring(with: match.range(at: 1))
+        var trailing = ""
+        if match.numberOfRanges >= 3 && match.range(at: 2).location != NSNotFound {
+            trailing = nsLine.substring(with: match.range(at: 2)).trimmingCharacters(in: .whitespaces)
+        }
+        return (typeStr, trailing)
+    }
+
+    private func resolveCalloutTheme(_ type: String) -> (label: String, strokeColor: String, fillColor: String) {
+        switch type.uppercased() {
+        case "NOTE", "INFO", "HINWEIS":
+            return ("Hinweis:", "rgb(\"1d4ed8\")", "rgb(\"eff6ff\")")
+        case "TIP", "TIPP", "SUCCESS", "ERFOLG":
+            return ("Tipp:", "rgb(\"15803d\")", "rgb(\"f0fdf4\")")
+        case "WARNING", "WARNUNG", "ACHTUNG":
+            return ("Warnung:", "rgb(\"c2410c\")", "rgb(\"fff7ed\")")
+        case "CAUTION", "DANGER", "FEHLER":
+            return ("Achtung:", "rgb(\"b91c1c\")", "rgb(\"fef2f2\")")
+        case "IMPORTANT", "WICHTIG":
+            return ("Wichtig:", "rgb(\"7e22ce\")", "rgb(\"faf5ff\")")
+        default:
+            return ("\(type.capitalized):", "rgb(\"0969da\")", "rgb(\"f8fafc\")")
+        }
     }
 
     private func isHorizontalRule(_ trimmed: String) -> Bool {
@@ -438,7 +473,7 @@ public final class PrintService {
         guard !parsedRows.isEmpty else { return "" }
         let colCount = parsedRows.map { $0.count }.max() ?? 1
 
-        var typstCode = "\n#table(\n  columns: \(colCount),\n  stroke: 0.5pt + luma(180),\n"
+        var typstCode = "\n#table(\n  columns: \(colCount),\n  stroke: 0.5pt + luma(180),\n  fill: (x, y) => if y == 0 { luma(240) } else { none },\n"
         for (idx, row) in parsedRows.enumerated() {
             var paddedRow = row
             while paddedRow.count < colCount {
@@ -514,7 +549,35 @@ public final class PrintService {
             }
         }
 
-        // 2. Links schützen ([Text](URL))
+        // 2. Inline-Math schützen ($...$)
+        var mathPlaceholders: [String] = []
+        let mathPattern = "(?<!\\$)\\$([^\\$\n]+?)\\$(?!\\$)"
+        if let mathRegex = try? NSRegularExpression(pattern: mathPattern, options: []) {
+            let matches = mathRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let formula = (res as NSString).substring(with: match.range(at: 1))
+                let placeholder = "\u{FFF0}MTH_\(mathPlaceholders.count)\u{FFF1}"
+                mathPlaceholders.append("$ \(formula) $")
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
+        }
+
+        // 3. Wiki-Links schützen ([[Ziel|Titel]] und [[Ziel]])
+        var wikiPlaceholders: [String] = []
+        let wikiPattern = "\\[\\[([^\\]|]+)(?:\\|([^\\]]+))?\\]\\]"
+        if let wikiRegex = try? NSRegularExpression(pattern: wikiPattern, options: []) {
+            let matches = wikiRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let hasAlias = match.numberOfRanges >= 3 && match.range(at: 2).location != NSNotFound
+                let textToShow = hasAlias ? (res as NSString).substring(with: match.range(at: 2)) : (res as NSString).substring(with: match.range(at: 1))
+                let formatted = convertInlineMarkdown(textToShow)
+                let placeholder = "\u{FFF0}WIKI_\(wikiPlaceholders.count)\u{FFF1}"
+                wikiPlaceholders.append("#text(fill: rgb(\"0969da\"), underline: true)[\(formatted)]")
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
+        }
+
+        // 4. Links schützen ([Text](URL))
         var linkPlaceholders: [String] = []
         let linkPattern = "\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
         if let linkRegex = try? NSRegularExpression(pattern: linkPattern, options: []) {
@@ -530,7 +593,19 @@ public final class PrintService {
             }
         }
 
-        // 3. Typst-Sonderzeichen im verbleibenden Text maskieren
+        // 5. Autolinks schützen (<https://...>)
+        let autolinkPattern = "<(https?://[^>]+|mailto:[^>]+)>"
+        if let autoRegex = try? NSRegularExpression(pattern: autolinkPattern, options: []) {
+            let matches = autoRegex.matches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length))
+            for match in matches.reversed() {
+                let url = (res as NSString).substring(with: match.range(at: 1))
+                let placeholder = "\u{FFF0}LNK_\(linkPlaceholders.count)\u{FFF1}"
+                linkPlaceholders.append("#link(\"\(url)\")[\(url)]")
+                res = (res as NSString).replacingCharacters(in: match.range, with: placeholder)
+            }
+        }
+
+        // 6. Typst-Sonderzeichen im verbleibenden Text maskieren
         res = res
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "#", with: "\\#")
@@ -539,7 +614,7 @@ public final class PrintService {
             .replacingOccurrences(of: "<", with: "\\<")
             .replacingOccurrences(of: ">", with: "\\>")
 
-        // 4. Markdown-Formatierungen anwenden
+        // 7. Markdown-Formatierungen anwenden
         // Highlights: ==Text== -> #highlight[Text]
         if let regex = try? NSRegularExpression(pattern: "==([^=]+?)==", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#highlight[$1]")
@@ -550,24 +625,35 @@ public final class PrintService {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#strike[$1]")
         }
 
-        // Fett-Kursiv: ***text*** -> *_\(text)_*
-        if let regex = try? NSRegularExpression(pattern: "\\*\\*\\*(.+?)\\*\\*\\*", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*_$1_*")
+        // Fett-Kursiv: ***text*** und ___text___ -> *_\(text)_*
+        if let regex = try? NSRegularExpression(pattern: "(\\*\\*\\*|___)(.+?)\\1", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*_$2_*")
         }
 
-        // Fett: **text** -> *text*
-        if let regex = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: []) {
-            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*$1*")
+        // Fett: **text** und __text__ -> *text*
+        if let regex = try? NSRegularExpression(pattern: "(\\*\\*|__)(.+?)\\1", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*$2*")
         }
 
-        // Kursiv: *text* -> _text_ (nur wenn nicht Teil eines Worts)
+        // Kursiv: *text* und _text_
         if let regex = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: []) {
             res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
         }
+        if let regex = try? NSRegularExpression(pattern: "(?<![\\w_])_([^_]+?)_(?![\\w_])", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
+        }
 
-        // 5. Platzhalter wieder einsetzen
+        // 8. Platzhalter wieder einsetzen
         for (idx, typstLink) in linkPlaceholders.enumerated() {
             res = res.replacingOccurrences(of: "\u{FFF0}LNK_\(idx)\u{FFF1}", with: typstLink)
+        }
+
+        for (idx, wikiLink) in wikiPlaceholders.enumerated() {
+            res = res.replacingOccurrences(of: "\u{FFF0}WIKI_\(idx)\u{FFF1}", with: wikiLink)
+        }
+
+        for (idx, mth) in mathPlaceholders.enumerated() {
+            res = res.replacingOccurrences(of: "\u{FFF0}MTH_\(idx)\u{FFF1}", with: mth)
         }
 
         for (idx, rawStr) in rawPlaceholders.enumerated() {
