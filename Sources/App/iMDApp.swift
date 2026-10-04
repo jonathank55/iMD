@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-public struct iTextApp: App {
+public struct iMDApp: App {
     public init() {
         DispatchQueue.global(qos: .userInteractive).async {
             let settings = EditorSettings.shared
@@ -16,7 +16,7 @@ public struct iTextApp: App {
         }
         .defaultSize(width: 375, height: 664)
         .commands {
-            iTextCommands()
+            iMDCommands()
         }
 
         Settings {

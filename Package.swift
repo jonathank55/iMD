@@ -2,19 +2,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "iText",
+    name: "iMD",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "iText",
-            targets: ["iText"]
+            name: "iMD",
+            targets: ["iMD"]
         )
     ],
     targets: [
         .executableTarget(
-            name: "iText",
+            name: "iMD",
             path: "Sources"
         )
     ]

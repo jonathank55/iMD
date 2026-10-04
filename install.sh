@@ -9,7 +9,7 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
-echo -e "\n${BLUE}=== iText — Installations- & Bereitstellungsskript ===${RESET}"
+echo -e "\n${BLUE}=== iMD — Installations- & Bereitstellungsskript ===${RESET}"
 echo -e "${BLUE}───────────────────────────────────────────────────────────────────────────${RESET}"
 
 # 1. Typst-Prüfung und -Installation
@@ -84,8 +84,8 @@ else
     exit 1
 fi
 
-# 2. iText kompilieren
-echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 2:${RESET} iText kompilieren (Release-Modus)..."
+# 2. iMD kompilieren
+echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 2:${RESET} iMD kompilieren (Release-Modus)..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -94,9 +94,10 @@ echo -e "${GREEN}✓ OK${RESET} Kompilierung erfolgreich abgeschlossen."
 
 # 3. App-Bundle schnüren
 echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 3:${RESET} macOS-App-Bundle vorbereiten und signieren..."
-APP_DIR="$SCRIPT_DIR/iText.app"
+APP_DIR="$SCRIPT_DIR/iMD.app"
+rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
-cp "$SCRIPT_DIR/.build/release/iText" "$APP_DIR/Contents/MacOS/iText"
+cp "$SCRIPT_DIR/.build/release/iMD" "$APP_DIR/Contents/MacOS/iMD"
 cp "$SCRIPT_DIR/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns" 2>/dev/null || true
 cp "$SCRIPT_DIR/Configuration/Info-macOS.plist" "$APP_DIR/Contents/Info.plist"
 
@@ -113,7 +114,7 @@ if [ -n "$TYPST_BIN" ] && [ -x "$TYPST_BIN" ]; then
     echo -e "${GREEN}✓ OK${RESET} Typst-Compiler autark im App-Bundle integriert."
 fi
 
-sed -i '' 's/\$(EXECUTABLE_NAME)/iText/g; s/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.jonathan.iText/g; s/\$(PRODUCT_NAME)/iText/g' "$APP_DIR/Contents/Info.plist"
+sed -i '' 's/\$(EXECUTABLE_NAME)/iMD/g; s/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.jonathan.iMD/g; s/\$(PRODUCT_NAME)/iMD/g' "$APP_DIR/Contents/Info.plist"
 echo "APPL????" > "$APP_DIR/Contents/PkgInfo"
 
 codesign --force --deep --sign - "$APP_DIR"
@@ -130,21 +131,23 @@ fi
 # 5. App installieren
 echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 5:${RESET} App im Benutzer-Programme-Ordner installieren..."
 mkdir -p "$HOME/Applications"
+rm -rf "$HOME/Applications/iMD.app"
 rm -rf "$HOME/Applications/iText.app"
 cp -R "$APP_DIR" "$HOME/Applications/"
-echo -e "${GREEN}✓ OK${RESET} iText.app nach ~/Applications/ kopiert."
+echo -e "${GREEN}✓ OK${RESET} iMD.app nach ~/Applications/ kopiert."
 
 # 6. Registrierung und Standard-App setzen
 echo -e "\n${BLUE}▸${RESET} ${BOLD}Schritt 6:${RESET} Dateizuordnungen für .txt und .md registrieren..."
-/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$HOME/Applications/iText.app"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$HOME/Applications/iMD.app"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$HOME/Applications/iText.app" 2>/dev/null || true
 
 if command -v duti &>/dev/null; then
-    duti -s com.jonathan.iText public.plain-text all
-    duti -s com.jonathan.iText net.daringfireball.markdown all
-    duti -s com.jonathan.iText txt all
-    duti -s com.jonathan.iText md all
-    echo -e "${GREEN}✓ OK${RESET} iText als Standard-App für .txt und .md gesetzt."
+    duti -s com.jonathan.iMD public.plain-text all
+    duti -s com.jonathan.iMD net.daringfireball.markdown all
+    duti -s com.jonathan.iMD txt all
+    duti -s com.jonathan.iMD md all
+    echo -e "${GREEN}✓ OK${RESET} iMD als Standard-App für .txt und .md gesetzt."
 fi
 
 echo -e "\n${BLUE}───────────────────────────────────────────────────────────────────────────${RESET}"
-echo -e "${GREEN}✓ ERFOLG:${RESET} ${BOLD}iText ist startbereit und im Dock / Launchpad verfügbar!${RESET}\n"
+echo -e "${GREEN}✓ ERFOLG:${RESET} ${BOLD}iMD ist startbereit und im Dock / Launchpad verfügbar!${RESET}\n"

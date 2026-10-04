@@ -1,4 +1,4 @@
-name: iText
+name: iMD
 options:
   bundleIdPrefix: com.jonathan
   deploymentTarget:
@@ -9,7 +9,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: 1
 targets:
-  iText:
+  iMD:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
@@ -18,8 +18,8 @@ targets:
       - path: Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonathan.iText
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonathan.iMD
         INFOPLIST_FILE: Configuration/Info-macOS.plist
-        CODE_SIGN_ENTITLEMENTS: Configuration/iText-macOS.entitlements
+        CODE_SIGN_ENTITLEMENTS: Configuration/iMD-macOS.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        PRODUCT_NAME: iText
+        PRODUCT_NAME: iMD

@@ -6,7 +6,8 @@ extension Notification.Name {
     public static let iTextShowSettingsRequested = Notification.Name("iTextShowSettingsRequested")
 }
 
-public struct iTextCommands: Commands {
+public struct iMDCommands: Commands {
+    public typealias iTextCommands = iMDCommands
     @ObservedObject private var settings = EditorSettings.shared
 
     private let standardFonts: [String] = [

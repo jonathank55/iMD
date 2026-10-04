@@ -125,7 +125,7 @@ public struct SettingsView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
-                Text("Gespeichert in: ~/.config/iText/config.json")
+                Text("Gespeichert in: ~/.config/iMD/config.json")
                     .font(.caption)
                     .foregroundColor(.secondary)
 

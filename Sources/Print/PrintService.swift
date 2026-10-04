@@ -23,8 +23,8 @@ public final class PrintService {
 
         let tempDir = FileManager.default.temporaryDirectory
         let uniqueID = UUID().uuidString
-        let typFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).typ")
-        let pdfFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).pdf")
+        let typFileURL = tempDir.appendingPathComponent("iMD_print_\(uniqueID).typ")
+        let pdfFileURL = tempDir.appendingPathComponent("iMD_print_\(uniqueID).pdf")
 
         let typstContent = buildTypstDocument(
             text: text,

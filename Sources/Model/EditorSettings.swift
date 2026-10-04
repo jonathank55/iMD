@@ -49,7 +49,7 @@ public final class EditorSettings: ObservableObject {
 
     public static var configDirectoryURL: URL {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        return home.appendingPathComponent(".config/iText", isDirectory: true)
+        return home.appendingPathComponent(".config/iMD", isDirectory: true)
     }
 
     public static var configFileURL: URL {
