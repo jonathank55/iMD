@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'AllExcludingTests' in project 'Aggregate'
+➜ Explicit dependency on target 'iText-product' in project 'iText'
+Target 'iText-product' in project 'iText' (no dependencies)

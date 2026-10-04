@@ -1,0 +1,679 @@
+[
+  {
+    "isFramework" : true,
+    "moduleName" : "Accessibility",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Accessibility-2G810QPD5VDI2.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "AppKit",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/AppKit-3HIRUNR9G07XR.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "ColorSync",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ColorSync-3W4TM3D8PA5MJ.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Combine",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Combine-3PZC462JWYGZR.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreAudio",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreAudio-2FVCK60HYUSQA.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreData",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreData-2WYM9S5MVUBQ0.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreFoundation-3VP4LVOYI3WAN.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreGraphics",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreGraphics-3UCH07JEMJZSQ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreImage",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreImage-E7Y2XKHWKQNM.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreMedia",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreMedia-1AM5ZVLSN21JK.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreText",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreText-3HB99WY0DEMZN.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreTransferable",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreTransferable-NCPHBFU5WX4C.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreVideo",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreVideo-1UEIEIDGFII7B.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Darwin",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Darwin-3KQ1Q2CC9XZ09.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "DataDetection",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/DataDetection-NSY5WL1RRX00.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "DeveloperToolsSupport",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/DeveloperToolsSupport-1VB91I5XT5P0I.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Dispatch",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Dispatch-1MM9I1NGGP947.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Foundation",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Foundation-2YKBCQGG3L4SZ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "IOKit",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/IOKit-2XN7517MPIZ3Z.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "ImageIO",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ImageIO-1V2DYTZ8N8NYU.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Metal",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Metal-382W5FG3QJXAF.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "OSLog",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/OSLog-2I3OPD6PDWE4F.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ObjectiveC-2MUG38WXWKK03.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Observation",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Observation-Y94HLLBNZ6DV.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "QuartzCore",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/QuartzCore-9O1K68U4TQZY.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Spatial",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Spatial-3UUVN0KQWZ4JS.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Swift",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Swift-U7MA94GFADW0.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "SwiftOnoneSupport",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftOnoneSupport-4ZVBNH9AP6K1.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "SwiftUI",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftUI-1ECBEV3QGCCWJ.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "SwiftUICore",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftUICore-1TZY46AT5TOZM.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Symbols",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Symbols-3JIE3D92LOGMJ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Synchronization",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Synchronization-2QDMW3AH9AVWC.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "System",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/System-23IGV4Y5DLHDJ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "UniformTypeIdentifiers",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/UniformTypeIdentifiers-6X5VSJ5GT1RP.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "XPC",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/XPC-264Y7N0WB8BDU.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_float-1BNJT8BKHDHVQ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Concurrency",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Concurrency-21M9LNOD82JNM.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation1-28HFNDU78VJLH.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation2-2SC3B21B3FKHA.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation3-TO0H0KSUDLUV.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_StringProcessing",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_StringProcessing-37LDWFT1IQ8PN.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "os",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/os-BDJLRQ210M38.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "simd",
+    "modulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/simd-28YZXZWB9V74P.swiftmodule"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Accessibility.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Accessibility-F10K60LWBYYRW9VTIC85IXT26.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Accessibility"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/AppKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/AppKit-CMGWG6VGD816M0MSUUQRE887B.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "AppKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/ApplicationServices.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ApplicationServices-BSOM1U0OHH8RYJZDQWEZTQWXL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ApplicationServices"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CFNetwork.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CFNetwork-9POJCUKTS84S2B4TY3CXKNTOL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CFNetwork"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/cups.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CUPS-1RDX84G2GJYT6EQPYSWG0B80D.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CUPS"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/ColorSync.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ColorSync-897K9FYTHFMRTPVNANYLPD3SX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ColorSync"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreAudio.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreAudio-CEFD79ID9SSISBXOP505E4X98.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreAudio"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreAudioTypes.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreAudioTypes-91ZLNUKKR7PZCMLW49IHBDQCY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreAudioTypes"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreData.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreData-7EMBH7MT92GD6I1KGN2L890K9.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreData"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreFoundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreFoundation-7X0YV8PDKXGA14X45C7TV03HW.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreGraphics.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreGraphics-CXRYYCVB3HCOF7LIMNZUK5LHX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreGraphics"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreImage.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreImage-2J1ABL98XW1GE1KMISQ1QRGXW.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreImage"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreMedia.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreMedia-CN6TLPTUWJUGFAVIAQEKPA7JH.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreMedia"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreServices.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreServices-8HFRWX3G048W23V654XUQV6P5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreServices"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreText.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreText-6FQFS8MEPFT0SUM8S1VD9G83C.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreText"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreTransferable.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreTransferable-1OW6CJQB033RG1OZ8MG49CZFP.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreTransferable"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreVideo.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/CoreVideo-EPGYHIEWXHW2TRX8H3F20NY54.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreVideo"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/Darwin.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Darwin-AW7QSJBJ88P28U6FW17P9LVLJ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Darwin"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/DataDetection.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/DataDetection-64OVG48P5FJOFVTBXMCT1I5W.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DataDetection"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/DeveloperToolsSupport.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/DeveloperToolsSupport-D23HJ6BW5PLLKEBJJDD4MHBDD.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DeveloperToolsSupport"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/DiskArbitration.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/DiskArbitration-A1SSV0X925XL2N2XCBSBR6C6Q.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DiskArbitration"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/dispatch.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Dispatch-4JP9PDLDFA5YGS3HZ0F6UDUAE.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Dispatch"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Foundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Foundation-ELFA2449OX5JPNUX119HV64SG.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Foundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/IOKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/IOKit-5REOJHIANZS8CZ7DLXPQLQEU6.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "IOKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/IOSurface.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/IOSurface-EERP575HKTPMUIA4702OB6RUA.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "IOSurface"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/ImageIO.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ImageIO-9BQQ1PTA10AZBXIFR1ZOM70O5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ImageIO"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinBasic.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/MachO-BUIEC2RM22UUUPAQEHE05PQ1J.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "MachO"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Metal.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Metal-7VRZ3NOR4GM974JHAZ29Q5OL0.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Metal"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/OSLog.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/OSLog-BIFD4B9K8T2CB5YGGU26ZXTPT.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "OSLog"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/ObjectiveC.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ObjectiveC-35EJA00MPF5XIX6CQUYBQHF7P.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/OpenGL.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/OpenGL-43SJ8SQN6QS5D4DP02NA0DAUL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "OpenGL"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/QuartzCore.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/QuartzCore-DNIH1OAI44VXMNESX2BE7RVGX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "QuartzCore"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Security-4SILJXJGCNPING3DIMJ9SJH0J.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Security"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/Spatial\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Spatial-4L5A44VP89KVNV7U0X48ORV0V.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Spatial"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftShims-4R8BVY1G8044RLTB280P0D12K.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/SwiftUI.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftUI-8R4180KK7528Z6D7T3SJ5QD4E.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftUI"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/SwiftUICore.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftUICore-1LBWNKRZ8Y07TLE3LK1PLHO80.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftUICore"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Symbols.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/Symbols-8WD4UPD6TEEIVZC9IL8PPJHYE.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Symbols"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/UniformTypeIdentifiers.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/UniformTypeIdentifiers-EBO8E6YM39LV67WHU0FCWWUJ8.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "UniformTypeIdentifiers"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/xpc.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/XPC-B5ZX5E5P5DQU75LYNZ2A6KSHG.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "XPC"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_AvailabilityInternal-3T517WSIV83NMTCO1JIJZD1FY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_AvailabilityInternal"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_float-AK6GRVHV6QK1U2EQ15EHINY30.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_intrinsics-3541J7POQZACMXPUNU1C9TD2Q.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_intrinsics"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_inttypes-4DRB2AK2YJ6ETA9ELQI2L808W.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_inttypes"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_limits-DFZY7TVO4JI6OTZNAKAN7XPFR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_limits"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdarg-9GQWNYDMJC5AUG3K97C8N4AOA.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdarg"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdatomic-58EAMJT79QGSE4410HYGM21SL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdatomic"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdbool-AAGPS07ULNT7C1WZ98WTIRT71.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdbool"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stddef-39CPZ1MEJGQX4O14U3WRBHEMO.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stddef"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdint-8MBM32SU9UHH2KXPF84O8R8PC.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdint"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_tgmath-5IO1OKSNUUYZNL2CZAMWI8H81.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_tgmath"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation1-37CV6FAJWVNW9F2LBSZ1CJ4D0.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation2-AZI4X7VWNUZFOPYAHYQGV2YN5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation3.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation3-3R5B4LRXL8YR6X6519X6AXCP5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/_SwiftConcurrencyShims-5N7FQ1B3D6TH8OTGA1T2VQWA5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_SwiftConcurrencyShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/launch.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/launch-7XLNJJGU8ZF0G27B8TR090SNL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "launch"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/libDER\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/libDER-9EE787GWVOGVZIRJKEELUUBJY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libDER"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/libkern.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/libkern-E0QXZ1GZWKB6EHWS52NZ65VIY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libkern"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/os-5QGPTDEFH1TKJKCJ2D57QVY0P.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/os_object-5TV1IXTLCKUSDK0JO4EBFBBNJ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_object"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/os_workgroup-3DY695JPH2NRVAVQOLMCOQXF1.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_workgroup"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ptrauth-4ZDKTS0U9W1Q5FLD9XBKHLRQQ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrauth"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/ptrcheck-9F97HPDXCEKO9JUXTGMYY35R.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrcheck"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/simd\/module.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/simd-A5VTUIOG5I2DLMWF2Q3QV9IJD.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "simd"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/c_standard_library.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/string_h-HN76C6ZD9GJD6C9GELQZUJNA.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "string_h"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/yonaklatchko\/iText\/.build\/out\/SDKExplicitPrecompiledModules\/sys_types-29HWXAGE7I6FX5QHAGQ3AQABX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "sys_types"
+  }
+]

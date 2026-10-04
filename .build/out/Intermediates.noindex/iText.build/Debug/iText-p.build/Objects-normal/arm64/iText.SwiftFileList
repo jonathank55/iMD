@@ -1,0 +1,13 @@
+/Users/yonaklatchko/iText/Sources/App/Commands.swift
+/Users/yonaklatchko/iText/Sources/App/iTextApp.swift
+/Users/yonaklatchko/iText/Sources/Model/EditorSettings.swift
+/Users/yonaklatchko/iText/Sources/Model/PlainTextDocument.swift
+/Users/yonaklatchko/iText/Sources/Platform/iOS/IOSFontPicker.swift
+/Users/yonaklatchko/iText/Sources/Platform/iOS/IOSTextEditor.swift
+/Users/yonaklatchko/iText/Sources/Platform/iOS/IOSToolbarAccessory.swift
+/Users/yonaklatchko/iText/Sources/Platform/macOS/MacFontManager.swift
+/Users/yonaklatchko/iText/Sources/Platform/macOS/MacTextEditor.swift
+/Users/yonaklatchko/iText/Sources/Syntax/MarkdownHighlighter.swift
+/Users/yonaklatchko/iText/Sources/Views/ContentView.swift
+/Users/yonaklatchko/iText/Sources/Views/EditorView.swift
+/Users/yonaklatchko/iText/Sources/Views/SettingsView.swift
