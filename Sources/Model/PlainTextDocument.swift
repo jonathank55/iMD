@@ -16,9 +16,11 @@ public struct PlainTextDocument: FileDocument {
     }
 
     public var text: String
+    public var isMarkdown: Bool = false
 
-    public init(text: String = "") {
+    public init(text: String = "", isMarkdown: Bool = false) {
         self.text = text
+        self.isMarkdown = isMarkdown
     }
 
     public init(configuration: ReadConfiguration) throws {
@@ -31,6 +33,12 @@ public struct PlainTextDocument: FileDocument {
             self.text = latin1String
         } else {
             self.text = String(decoding: data, as: UTF8.self)
+        }
+
+        let contentType = configuration.contentType
+        self.isMarkdown = contentType.conforms(to: .markdownDocument) || (contentType.preferredFilenameExtension?.lowercased() == "md")
+        if !self.isMarkdown, let filename = configuration.file.filename {
+            self.isMarkdown = filename.hasSuffix(".md") || filename.hasSuffix(".markdown")
         }
     }
 

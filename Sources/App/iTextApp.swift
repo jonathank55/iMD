@@ -6,8 +6,9 @@ public struct iTextApp: App {
 
     public var body: some Scene {
         DocumentGroup(newDocument: PlainTextDocument()) { file in
-            ContentView(document: file.$document)
+            ContentView(document: file.$document, fileURL: file.fileURL)
         }
+        .defaultSize(width: 375, height: 664)
         .commands {
             iTextCommands()
         }

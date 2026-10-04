@@ -16,11 +16,13 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: Sources
+      - path: Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jonathan.iText
         INFOPLIST_FILE: Configuration/Info-macOS.plist
         CODE_SIGN_ENTITLEMENTS: Configuration/iText-macOS.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_NAME: iText
   iText-iOS:
     type: application
@@ -28,10 +30,12 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Sources
+      - path: Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jonathan.iText
         INFOPLIST_FILE: Configuration/Info-iOS.plist
         CODE_SIGN_ENTITLEMENTS: Configuration/iText-iOS.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_NAME: iText

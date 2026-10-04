@@ -4,10 +4,12 @@ import AppKit
 
 public struct MacTextEditor: NSViewRepresentable {
     @Binding public var text: String
+    public var isMarkdown: Bool
     @ObservedObject public var settings: EditorSettings
 
-    public init(text: Binding<String>, settings: EditorSettings) {
+    public init(text: Binding<String>, isMarkdown: Bool, settings: EditorSettings) {
         self._text = text
+        self.isMarkdown = isMarkdown
         self.settings = settings
     }
 
@@ -22,7 +24,7 @@ public struct MacTextEditor: NSViewRepresentable {
         }
 
         textView.delegate = context.coordinator
-        textView.isRichText = true // Allows displaying attributed font weights, but export is plain string
+        textView.isRichText = true
         textView.importsGraphics = false
         textView.allowsUndo = true
         textView.isEditable = true
@@ -78,6 +80,7 @@ public struct MacTextEditor: NSViewRepresentable {
                 let selectedRange = savedRanges.first?.rangeValue ?? NSRange(location: NSNotFound, length: 0)
                 let attributed = MarkdownHighlighter.shared.highlight(
                     text: newText,
+                    isMarkdown: parent.isMarkdown,
                     selectedRange: selectedRange,
                     fontFamily: settings.fontFamily,
                     fontSize: settings.fontSize,
@@ -112,6 +115,7 @@ public struct MacTextEditor: NSViewRepresentable {
             let selectedRange = tv.selectedRange()
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
+                isMarkdown: parent.isMarkdown,
                 selectedRange: selectedRange,
                 fontFamily: parent.settings.fontFamily,
                 fontSize: parent.settings.fontSize,
@@ -129,7 +133,7 @@ public struct MacTextEditor: NSViewRepresentable {
         }
 
         public func textViewDidChangeSelection(_ notification: Notification) {
-            guard !isUpdatingInternal, parent.settings.isMarkdownHighlightingEnabled, let tv = textView else { return }
+            guard !isUpdatingInternal, parent.isMarkdown, parent.settings.isMarkdownHighlightingEnabled, let tv = textView else { return }
 
             let selectedRange = tv.selectedRange()
             let currentText = tv.string
@@ -137,6 +141,7 @@ public struct MacTextEditor: NSViewRepresentable {
             isUpdatingInternal = true
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
+                isMarkdown: parent.isMarkdown,
                 selectedRange: selectedRange,
                 fontFamily: parent.settings.fontFamily,
                 fontSize: parent.settings.fontSize,

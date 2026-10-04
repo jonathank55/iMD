@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		128F0C8F9A1247A89493401A /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F873065B1D6A008FA88D675 /* Commands.swift */; };
 		141928BBE846E14A79D85824 /* PlainTextDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */; };
+		1775DF8D887B8DF4C46A7FE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7470C11A9DD13297293DB73E /* Assets.xcassets */; };
 		1CA44C23E5B8335037055916 /* PlainTextDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */; };
 		296332426687D8FB536DCA5F /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F873065B1D6A008FA88D675 /* Commands.swift */; };
 		334FE4496C21E5EDDF1CEB31 /* IOSFontPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */; };
@@ -24,6 +25,7 @@
 		A3415B11DDFB424B587EDBAB /* MacTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349253DACCCDC729C9E11395 /* MacTextEditor.swift */; };
 		ADE00D9C44EE87C737F13F7A /* IOSToolbarAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D840380A913E27F14218D0D5 /* IOSToolbarAccessory.swift */; };
 		ADE22CEB6ED3B2B6A580690D /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1F4287A535BCA5E53AF470 /* EditorView.swift */; };
+		B5A650F6ECF48A7D0958C809 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7470C11A9DD13297293DB73E /* Assets.xcassets */; };
 		B71DFB134FA51E1F1313FEEC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74CDE991B52F98B14D33C0 /* ContentView.swift */; };
 		CB2FB106FE33FAC8B59D37EE /* iTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9359C5FBF0E6E6819DEFC1B /* iTextApp.swift */; };
 		D5F71F853E27021FD805A0EA /* IOSTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C6A0CA395A32BDB18514D /* IOSTextEditor.swift */; };
@@ -43,6 +45,7 @@
 		56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSFontPicker.swift; sourceTree = "<group>"; };
 		59B2DF7A9533B27BC4274DF8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6B1F4287A535BCA5E53AF470 /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
+		7470C11A9DD13297293DB73E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		77A27A9E2D91C1B7468ABFE5 /* MacFontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacFontManager.swift; sourceTree = "<group>"; };
 		825A6120642702FCB42C61BD /* iText-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iText-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D4430D0C6AF4A25878C3132 /* MarkdownHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownHighlighter.swift; sourceTree = "<group>"; };
@@ -142,6 +145,7 @@
 		EB0443014900752273107BDC = {
 			isa = PBXGroup;
 			children = (
+				7470C11A9DD13297293DB73E /* Assets.xcassets */,
 				93E9E44431FA6D9C8DB6CAE2 /* Sources */,
 				2A6A05F61A297D1E5109D92E /* Products */,
 			);
@@ -155,6 +159,7 @@
 			buildConfigurationList = AE1E8A1DE356B0BB85C83BB8 /* Build configuration list for PBXNativeTarget "iText-macOS" */;
 			buildPhases = (
 				D47E81AABAC5170E82686A79 /* Sources */,
+				051134070C3F374D18FCA3AC /* Resources */,
 			);
 			buildRules = (
 			);
@@ -172,6 +177,7 @@
 			buildConfigurationList = 0572BBC1FF55BFC871FC0912 /* Build configuration list for PBXNativeTarget "iText-iOS" */;
 			buildPhases = (
 				C7A2EB18E407D8AD02573C91 /* Sources */,
+				C52C47E58F6D0320E5CB887F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -214,6 +220,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		051134070C3F374D18FCA3AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5A650F6ECF48A7D0958C809 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C52C47E58F6D0320E5CB887F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1775DF8D887B8DF4C46A7FE6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C7A2EB18E407D8AD02573C91 /* Sources */ = {

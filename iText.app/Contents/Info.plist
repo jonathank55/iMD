@@ -8,6 +8,8 @@
     <string>iText</string>
     <key>CFBundleExecutable</key>
     <string>iText</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>com.jonathan.iText</string>
     <key>CFBundleInfoDictionaryVersion</key>

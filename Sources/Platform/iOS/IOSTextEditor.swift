@@ -4,10 +4,12 @@ import UIKit
 
 public struct IOSTextEditor: UIViewRepresentable {
     @Binding public var text: String
+    public var isMarkdown: Bool
     @ObservedObject public var settings: EditorSettings
 
-    public init(text: Binding<String>, settings: EditorSettings) {
+    public init(text: Binding<String>, isMarkdown: Bool, settings: EditorSettings) {
         self._text = text
+        self.isMarkdown = isMarkdown
         self.settings = settings
     }
 
@@ -71,6 +73,7 @@ public struct IOSTextEditor: UIViewRepresentable {
 
                 let attributed = MarkdownHighlighter.shared.highlight(
                     text: newText,
+                    isMarkdown: parent.isMarkdown,
                     selectedRange: savedRange,
                     fontFamily: settings.fontFamily,
                     fontSize: settings.fontSize,
@@ -105,6 +108,7 @@ public struct IOSTextEditor: UIViewRepresentable {
             let selectedRange = textView.selectedRange
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
+                isMarkdown: parent.isMarkdown,
                 selectedRange: selectedRange,
                 fontFamily: parent.settings.fontFamily,
                 fontSize: parent.settings.fontSize,
@@ -122,15 +126,15 @@ public struct IOSTextEditor: UIViewRepresentable {
         }
 
         public func textViewDidChangeSelection(_ textView: UITextView) {
-            guard !isUpdatingInternal, parent.settings.isMarkdownHighlightingEnabled else { return }
+            guard !isUpdatingInternal, parent.isMarkdown, parent.settings.isMarkdownHighlightingEnabled else { return }
 
-            // Re-render highlight when cursor changes lines (Obsidian-style live preview)
             let selectedRange = textView.selectedRange
             let currentText = textView.text ?? ""
 
             isUpdatingInternal = true
             let attributed = MarkdownHighlighter.shared.highlight(
                 text: currentText,
+                isMarkdown: parent.isMarkdown,
                 selectedRange: selectedRange,
                 fontFamily: parent.settings.fontFamily,
                 fontSize: parent.settings.fontSize,
