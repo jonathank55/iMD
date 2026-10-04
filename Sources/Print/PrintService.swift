@@ -131,6 +131,20 @@ public final class PrintService {
                 return
             }
 
+            let cleanTitle: String
+            if let customTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines), !customTitle.isEmpty {
+                cleanTitle = (customTitle as NSString).deletingPathExtension
+            } else if let repURL = (window ?? NSApp.keyWindow)?.representedURL {
+                cleanTitle = repURL.deletingPathExtension().lastPathComponent
+            } else if let winTitle = (window ?? NSApp.keyWindow)?.title.trimmingCharacters(in: .whitespacesAndNewlines),
+                      !winTitle.isEmpty, winTitle != "Ohne Titel" && winTitle != "Untitled" {
+                let stripped = winTitle.replacingOccurrences(of: " — Bearbeitet", with: "").replacingOccurrences(of: " — Edited", with: "")
+                cleanTitle = (stripped as NSString).deletingPathExtension
+            } else {
+                cleanTitle = "Dokument"
+            }
+            printOp.jobTitle = cleanTitle
+
             // Vollständig natives macOS-Druckmenü anzeigen
             printOp.showsPrintPanel = true
             printOp.showsProgressPanel = true
@@ -241,7 +255,8 @@ public final class PrintService {
         )
         #set par(
           justify: \(justifyStr),
-          leading: \(leadingPt)
+          leading: \(leadingPt),
+          spacing: \(leadingPt)
         )
         #show heading: set block(above: 2.2em, below: 1.4em)
         #show heading.where(level: 1): it => block(above: 2.4em, below: 1.5em, it)
@@ -264,6 +279,10 @@ public final class PrintService {
         var resultLines: [String] = []
 
         for line in lines {
+            let hasIndent = line.hasPrefix("\t") || line.hasPrefix("    ")
+            if hasIndent && !resultLines.isEmpty && !resultLines.last!.isEmpty {
+                resultLines.append("")
+            }
             let processedLine = processLineIndentsAndEscaping(line, isMarkdown: false)
             resultLines.append(processedLine)
         }
@@ -365,6 +384,10 @@ public final class PrintService {
                 processed = "\(numbered.indent)+ \(body)"
             } else {
                 // 9. Normaler Fließtext mit Einzügen und Inline-Markdown
+                let hasIndent = line.hasPrefix("\t") || line.hasPrefix("    ")
+                if hasIndent && !resultLines.isEmpty && !resultLines.last!.isEmpty {
+                    resultLines.append("")
+                }
                 processed = processLineIndentsAndEscaping(processed, isMarkdown: true)
             }
 

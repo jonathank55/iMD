@@ -209,9 +209,10 @@ public struct MacTextEditor: NSViewRepresentable {
         textView.backgroundColor = .textBackgroundColor
         textView.textColor = .labelColor
         textView.textContainerInset = NSSize(width: 24, height: 24)
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
+        textView.isAutomaticQuoteSubstitutionEnabled = true
+        textView.isAutomaticDashSubstitutionEnabled = true
+        textView.isAutomaticTextReplacementEnabled = true
+        textView.isAutomaticSpellingCorrectionEnabled = true
 
         let defaultPara = MarkdownHighlighter.makeParagraphStyle(
             isJustified: settings.isJustified,

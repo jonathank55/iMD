@@ -291,7 +291,8 @@ public final class MarkdownHighlighter {
         style.alignment = isJustified ? .justified : .left
         style.hyphenationFactor = isHyphenationEnabled ? 1.0 : 0.0
         style.lineSpacing = CGFloat(lineSpacing)
-        style.lineBreakStrategy = .pushOut
+        style.lineBreakStrategy = []
+        style.tighteningFactorForTruncation = 0.05
         return style
     }
 
@@ -354,6 +355,7 @@ public final class MarkdownHighlighter {
         langRecognizer.processString(String(text.prefix(2000)))
         let dominantLang = langRecognizer.dominantLanguage?.rawValue ?? (Locale.current.language.languageCode?.identifier ?? "de")
         attributed.addAttribute(NSAttributedString.Key(kCTLanguageAttributeName as String), value: dominantLang, range: fullRange)
+        attributed.addAttribute(NSAttributedString.Key(rawValue: "NSLanguage"), value: dominantLang, range: fullRange)
 
         // Für reine Textdateien (.txt): keine Markdown-Formatierung, Anzeige als normaler Text
         guard isMarkdown && isMarkdownHighlightingEnabled else { return attributed }
