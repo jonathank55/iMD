@@ -4,6 +4,7 @@ import Combine
 public struct AppConfig: Codable, Equatable {
     public var fontFamily: String
     public var fontSize: Double
+    public var lineSpacing: Double
     public var isJustified: Bool
     public var isHyphenationEnabled: Bool
     public var isMarkdownHighlightingEnabled: Bool
@@ -12,6 +13,7 @@ public struct AppConfig: Codable, Equatable {
     public init(
         fontFamily: String = "PT Serif",
         fontSize: Double = 16.0,
+        lineSpacing: Double = 3.0,
         isJustified: Bool = true,
         isHyphenationEnabled: Bool = true,
         isMarkdownHighlightingEnabled: Bool = true,
@@ -19,6 +21,7 @@ public struct AppConfig: Codable, Equatable {
     ) {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
+        self.lineSpacing = lineSpacing
         self.isJustified = isJustified
         self.isHyphenationEnabled = isHyphenationEnabled
         self.isMarkdownHighlightingEnabled = isMarkdownHighlightingEnabled
@@ -43,6 +46,10 @@ public final class EditorSettings: ObservableObject {
     }
 
     @Published public var fontSize: Double {
+        didSet { persist() }
+    }
+
+    @Published public var lineSpacing: Double {
         didSet { persist() }
     }
 
@@ -72,6 +79,7 @@ public final class EditorSettings: ObservableObject {
         let config = Self.loadConfigFile()
         self.fontFamily = config.fontFamily
         self.fontSize = config.fontSize
+        self.lineSpacing = config.lineSpacing > 0 ? config.lineSpacing : 3.0
         self.isJustified = config.isJustified
         self.isHyphenationEnabled = config.isHyphenationEnabled
         self.isMarkdownHighlightingEnabled = config.isMarkdownHighlightingEnabled
@@ -102,6 +110,7 @@ public final class EditorSettings: ObservableObject {
         let config = AppConfig(
             fontFamily: fontFamily,
             fontSize: fontSize,
+            lineSpacing: lineSpacing,
             isJustified: isJustified,
             isHyphenationEnabled: isHyphenationEnabled,
             isMarkdownHighlightingEnabled: isMarkdownHighlightingEnabled,

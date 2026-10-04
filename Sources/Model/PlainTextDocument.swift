@@ -46,6 +46,7 @@ public struct PlainTextDocument: FileDocument {
 
     public func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let data = Data(text.utf8)
+        NotificationCenter.default.post(name: .iTextDocumentSaved, object: nil)
         return FileWrapper(regularFileWithContents: data)
     }
 }

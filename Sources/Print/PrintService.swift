@@ -6,36 +6,59 @@ public final class PrintService {
 
     private init() {}
 
-    public func printDocument(text: String, isMarkdown: Bool, title: String? = nil, window: NSWindow? = nil) {
+    public func printDocument(
+        text: String,
+        isMarkdown: Bool,
+        title: String? = nil,
+        settings: EditorSettings = EditorSettings.shared,
+        window: NSWindow? = nil
+    ) {
         let tempDir = FileManager.default.temporaryDirectory
         let uniqueID = UUID().uuidString
-        let ext = isMarkdown ? "md" : "txt"
-        let inputFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).\(ext)")
-        let outputFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).pdf")
+        let typFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).typ")
+        let pdfFileURL = tempDir.appendingPathComponent("iText_print_\(uniqueID).pdf")
+
+        let typstContent = buildTypstDocument(text: text, isMarkdown: isMarkdown, title: title, settings: settings)
 
         do {
-            try text.write(to: inputFileURL, atomically: true, encoding: .utf8)
+            try typstContent.write(to: typFileURL, atomically: true, encoding: .utf8)
         } catch {
             showErrorAlert(message: "Konnte Druckdatei nicht schreiben: \(error.localizedDescription)", window: window)
             return
         }
 
         let candidates = [
-            "/Users/yonaklatchko/.local/bin/txt2pdf",
-            "/opt/homebrew/bin/txt2pdf",
-            "/usr/local/bin/txt2pdf"
+            "/opt/homebrew/bin/typst",
+            "/usr/local/bin/typst",
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cargo/bin/typst").path
         ]
-        var txt2pdfPath: String?
+        var typstExecutable: String?
         for c in candidates {
             if FileManager.default.isExecutableFile(atPath: c) {
-                txt2pdfPath = c
+                typstExecutable = c
                 break
             }
         }
 
-        guard let executable = txt2pdfPath else {
+        if typstExecutable == nil {
+            let whichProc = Process()
+            whichProc.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+            whichProc.arguments = ["typst"]
+            let whichPipe = Pipe()
+            whichProc.standardOutput = whichPipe
+            try? whichProc.run()
+            whichProc.waitUntilExit()
+            if whichProc.terminationStatus == 0 {
+                let outData = whichPipe.fileHandleForReading.readDataToEndOfFile()
+                if let str = String(data: outData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !str.isEmpty {
+                    typstExecutable = str
+                }
+            }
+        }
+
+        guard let executable = typstExecutable else {
             showErrorAlert(
-                message: "txt2pdf wurde nicht im Pfad gefunden. Bitte installieren Sie txt2pdf über das Installationsskript.",
+                message: "Typst wurde nicht gefunden. Bitte installieren Sie Typst via Homebrew: brew install typst",
                 window: window
             )
             return
@@ -43,11 +66,7 @@ public final class PrintService {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
-        var arguments = [inputFileURL.path, "-o", outputFileURL.path]
-        if let docTitle = title, !docTitle.isEmpty {
-            arguments.append(contentsOf: ["-t", docTitle])
-        }
-        process.arguments = arguments
+        process.arguments = ["compile", typFileURL.path, pdfFileURL.path]
 
         var env = ProcessInfo.processInfo.environment
         let currentPath = env["PATH"] ?? ""
@@ -64,18 +83,22 @@ public final class PrintService {
 
             if process.terminationStatus != 0 {
                 let errData = pipe.fileHandleForReading.readDataToEndOfFile()
-                let errMsg = String(data: errData, encoding: .utf8) ?? "Fehler beim Kompilieren via txt2pdf."
-                showErrorAlert(message: "Druckaufbereitung fehlgeschlagen:\n\(errMsg)", window: window)
+                let errMsg = String(data: errData, encoding: .utf8) ?? "Unbekannter Kompilierungsfehler."
+                showErrorAlert(message: "Typst-Druckaufbereitung fehlgeschlagen:\n\(errMsg)", window: window)
+                try? FileManager.default.removeItem(at: typFileURL)
                 return
             }
 
-            guard FileManager.default.fileExists(atPath: outputFileURL.path) else {
+            guard FileManager.default.fileExists(atPath: pdfFileURL.path) else {
                 showErrorAlert(message: "Das PDF-Dokument wurde nicht erzeugt.", window: window)
+                try? FileManager.default.removeItem(at: typFileURL)
                 return
             }
 
-            guard let pdfDoc = PDFDocument(url: outputFileURL) else {
+            guard let pdfDoc = PDFDocument(url: pdfFileURL) else {
                 showErrorAlert(message: "Das erzeugte PDF konnte nicht geladen werden.", window: window)
+                try? FileManager.default.removeItem(at: typFileURL)
+                try? FileManager.default.removeItem(at: pdfFileURL)
                 return
             }
 
@@ -87,6 +110,8 @@ public final class PrintService {
 
             guard let printOp = pdfDoc.printOperation(for: printInfo, scalingMode: .pageScaleDownToFit, autoRotate: true) else {
                 showErrorAlert(message: "Druckoperation konnte nicht initialisiert werden.", window: window)
+                try? FileManager.default.removeItem(at: typFileURL)
+                try? FileManager.default.removeItem(at: pdfFileURL)
                 return
             }
 
@@ -99,9 +124,142 @@ public final class PrintService {
                 printOp.run()
             }
 
+            // Temporäre Dateien nach Ausführung aufräumen
+            DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 5.0) {
+                try? FileManager.default.removeItem(at: typFileURL)
+                try? FileManager.default.removeItem(at: pdfFileURL)
+            }
+
         } catch {
-            showErrorAlert(message: "Fehler beim Ausführen von txt2pdf: \(error.localizedDescription)", window: window)
+            showErrorAlert(message: "Fehler beim Ausführen von Typst: \(error.localizedDescription)", window: window)
+            try? FileManager.default.removeItem(at: typFileURL)
         }
+    }
+
+    private func buildTypstDocument(text: String, isMarkdown: Bool, title: String?, settings: EditorSettings) -> String {
+        let family = settings.fontFamily
+        let resolvedFont: String
+        if family.isEmpty || family == "System" || family == ".AppleSystemUIFont" {
+            resolvedFont = "(\"Helvetica Neue\", \"Arial\")"
+        } else {
+            resolvedFont = "(\"\(family)\", \"PT Serif\", \"Times New Roman\")"
+        }
+
+        let sizePt = String(format: "%.1fpt", settings.fontSize)
+        let leadingPt = String(format: "%.1fpt", max(2.0, settings.lineSpacing))
+        let justifyStr = settings.isJustified ? "true" : "false"
+        let hyphenateStr = settings.isHyphenationEnabled ? "true" : "false"
+
+        var headerCode = ""
+        if let docTitle = title, !docTitle.isEmpty {
+            let escapedTitle = escapeTypstContent(docTitle)
+            headerCode = "header: align(right)[#text(8pt, fill: luma(120))[\(escapedTitle)]],"
+        }
+
+        // Große Ränder für edles, buchgleiches Druckbild
+        var doc = """
+        #set page(
+          paper: "a4",
+          margin: (top: 2.8cm, bottom: 2.8cm, left: 3.0cm, right: 3.0cm),
+          \(headerCode)
+          numbering: "1"
+        )
+        #set text(
+          font: \(resolvedFont),
+          size: \(sizePt),
+          lang: "de",
+          hyphenate: \(hyphenateStr)
+        )
+        #set par(
+          justify: \(justifyStr),
+          leading: \(leadingPt)
+        )
+
+        """
+
+        if isMarkdown {
+            doc += convertMarkdownToTypst(text)
+        } else {
+            doc += escapeTypstContent(text)
+        }
+
+        return doc
+    }
+
+    private func convertMarkdownToTypst(_ markdown: String) -> String {
+        let lines = markdown.components(separatedBy: "\n")
+        var inCodeBlock = false
+        var resultLines: [String] = []
+
+        for line in lines {
+            if line.hasPrefix("```") {
+                inCodeBlock.toggle()
+                resultLines.append(line)
+                continue
+            }
+            if inCodeBlock {
+                resultLines.append(line)
+                continue
+            }
+
+            var processed = line
+
+            // Überschriften: # -> =
+            if processed.hasPrefix("# ") {
+                processed = "= " + processed.dropFirst(2)
+            } else if processed.hasPrefix("## ") {
+                processed = "== " + processed.dropFirst(3)
+            } else if processed.hasPrefix("### ") {
+                processed = "=== " + processed.dropFirst(4)
+            } else if processed.hasPrefix("#### ") {
+                processed = "==== " + processed.dropFirst(5)
+            } else if processed.hasPrefix("##### ") {
+                processed = "===== " + processed.dropFirst(6)
+            } else if processed.hasPrefix("###### ") {
+                processed = "====== " + processed.dropFirst(7)
+            } else if processed.hasPrefix("> ") {
+                // Zitat
+                let quoteContent = escapeTypstContent(String(processed.dropFirst(2)))
+                processed = "#quote[\(quoteContent)]"
+            } else {
+                // Inline-Elemente für Fließtext
+                processed = convertInlineMarkdown(processed)
+            }
+
+            resultLines.append(processed)
+        }
+
+        return resultLines.joined(separator: "\n")
+    }
+
+    private func convertInlineMarkdown(_ text: String) -> String {
+        var res = text
+        // Strikethrough: ~~text~~ -> #strike[text]
+        if let regex = try? NSRegularExpression(pattern: "~~(.+?)~~", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "#strike[$1]")
+        }
+        // Bold: **text** -> *text*
+        if let regex = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "*$1*")
+        }
+        // Italic: *text* -> _text_ (nur wenn nicht Teil eines Worts)
+        if let regex = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+?)\\*(?!\\*)", options: []) {
+            res = regex.stringByReplacingMatches(in: res, options: [], range: NSRange(location: 0, length: (res as NSString).length), withTemplate: "_$1_")
+        }
+        return res
+    }
+
+    private func escapeTypstContent(_ str: String) -> String {
+        return str
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "#", with: "\\#")
+            .replacingOccurrences(of: "$", with: "\\$")
+            .replacingOccurrences(of: "*", with: "\\*")
+            .replacingOccurrences(of: "_", with: "\\_")
+            .replacingOccurrences(of: "`", with: "\\`")
+            .replacingOccurrences(of: "@", with: "\\@")
+            .replacingOccurrences(of: "<", with: "\\<")
+            .replacingOccurrences(of: ">", with: "\\>")
     }
 
     private func showErrorAlert(message: String, window: NSWindow?) {

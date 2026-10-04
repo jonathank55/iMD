@@ -36,11 +36,15 @@ public final class MarkdownHighlighter {
         return base
     }
 
-    public static func makeParagraphStyle(isJustified: Bool, isHyphenationEnabled: Bool) -> NSMutableParagraphStyle {
+    public static func makeParagraphStyle(
+        isJustified: Bool,
+        isHyphenationEnabled: Bool,
+        lineSpacing: Double = 3.0
+    ) -> NSMutableParagraphStyle {
         let style = NSMutableParagraphStyle()
         style.alignment = isJustified ? .justified : .left
         style.hyphenationFactor = isHyphenationEnabled ? 1.0 : 0.0
-        style.lineSpacing = 3.0
+        style.lineSpacing = CGFloat(lineSpacing)
         return style
     }
 
@@ -50,6 +54,7 @@ public final class MarkdownHighlighter {
         selectedRange: NSRange,
         fontFamily: String,
         fontSize: Double,
+        lineSpacing: Double = 3.0,
         isJustified: Bool,
         isHyphenationEnabled: Bool,
         isMarkdownHighlightingEnabled: Bool
@@ -59,7 +64,11 @@ public final class MarkdownHighlighter {
         guard fullRange.length > 0 else { return attributed }
 
         let regularFont = Self.resolveFont(family: fontFamily, size: fontSize)
-        let paragraphStyle = Self.makeParagraphStyle(isJustified: isJustified, isHyphenationEnabled: isHyphenationEnabled)
+        let paragraphStyle = Self.makeParagraphStyle(
+            isJustified: isJustified,
+            isHyphenationEnabled: isHyphenationEnabled,
+            lineSpacing: lineSpacing
+        )
 
         let textColor = NSColor.labelColor
         let hiddenColor = NSColor.clear

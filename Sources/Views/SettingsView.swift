@@ -57,6 +57,25 @@ public struct SettingsView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                 }
+
+                HStack {
+                    Text("Zeilenabstand: \(Int(settings.lineSpacing)) pt")
+                    Spacer()
+                    Button(action: { settings.lineSpacing = max(0.0, settings.lineSpacing - 1.0) }) {
+                        Image(systemName: "minus")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+
+                    Slider(value: $settings.lineSpacing, in: 0...16, step: 1)
+                        .frame(width: 90)
+
+                    Button(action: { settings.lineSpacing = min(24.0, settings.lineSpacing + 1.0) }) {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
             }
 
             Divider()
