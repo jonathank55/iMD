@@ -44,6 +44,18 @@ public struct iTextCommands: Commands {
             .keyboardShortcut("p", modifiers: .command)
         }
 
+        CommandGroup(replacing: .undoRedo) {
+            Button("Widerrufen") {
+                NotificationCenter.default.post(name: .iTextUndoRequested, object: nil)
+            }
+            .keyboardShortcut("z", modifiers: .command)
+
+            Button("Wiederholen") {
+                NotificationCenter.default.post(name: .iTextRedoRequested, object: nil)
+            }
+            .keyboardShortcut("y", modifiers: .command)
+        }
+
         CommandMenu("Formatierung") {
             Button("Fett") {
                 NotificationCenter.default.post(name: .iTextFormatBoldRequested, object: nil)

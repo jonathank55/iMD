@@ -10,6 +10,43 @@ extension Notification.Name {
     public static let iTextFormatHeading1Requested = Notification.Name("iTextFormatHeading1Requested")
     public static let iTextFormatHeading2Requested = Notification.Name("iTextFormatHeading2Requested")
     public static let iTextFormatHeading3Requested = Notification.Name("iTextFormatHeading3Requested")
+    public static let iTextUndoRequested = Notification.Name("iTextUndoRequested")
+    public static let iTextRedoRequested = Notification.Name("iTextRedoRequested")
+}
+
+public final class iTextEditorTextView: NSTextView {
+    public override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if flags == .command {
+            if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                if chars == "y" {
+                    if let um = self.undoManager, um.canRedo {
+                        um.redo()
+                    } else if let win = self.window, win.undoManager?.canRedo == true {
+                        win.undoManager?.redo()
+                    }
+                    return true
+                } else if chars == "z" {
+                    if let um = self.undoManager, um.canUndo {
+                        um.undo()
+                    } else if let win = self.window, win.undoManager?.canUndo == true {
+                        win.undoManager?.undo()
+                    }
+                    return true
+                }
+            }
+        } else if flags == [.command, .shift] {
+            if let chars = event.charactersIgnoringModifiers?.lowercased(), chars == "z" {
+                if let um = self.undoManager, um.canRedo {
+                    um.redo()
+                } else if let win = self.window, win.undoManager?.canRedo == true {
+                    win.undoManager?.redo()
+                }
+                return true
+            }
+        }
+        return super.performKeyEquivalent(with: event)
+    }
 }
 
 public struct MacTextEditor: NSViewRepresentable {
@@ -28,10 +65,25 @@ public struct MacTextEditor: NSViewRepresentable {
     }
 
     public func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSTextView.scrollableTextView()
-        guard let textView = scrollView.documentView as? NSTextView else {
-            return scrollView
-        }
+        let textStorage = NSTextStorage()
+        let layoutManager = NSLayoutManager()
+        textStorage.addLayoutManager(layoutManager)
+        let textContainer = NSTextContainer(containerSize: NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
+        textContainer.widthTracksTextView = true
+        layoutManager.addTextContainer(textContainer)
+
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.borderType = .noBorder
+
+        let textView = iTextEditorTextView(frame: .zero, textContainer: textContainer)
+        textView.minSize = NSSize(width: 0.0, height: 0.0)
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
 
         textView.delegate = context.coordinator
         textView.isRichText = true
@@ -46,9 +98,7 @@ public struct MacTextEditor: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
 
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
+        scrollView.documentView = textView
 
         let coordinator = context.coordinator
         coordinator.textView = textView
@@ -105,6 +155,8 @@ public struct MacTextEditor: NSViewRepresentable {
             nc.addObserver(self, selector: #selector(handleFormatHeading1), name: .iTextFormatHeading1Requested, object: nil)
             nc.addObserver(self, selector: #selector(handleFormatHeading2), name: .iTextFormatHeading2Requested, object: nil)
             nc.addObserver(self, selector: #selector(handleFormatHeading3), name: .iTextFormatHeading3Requested, object: nil)
+            nc.addObserver(self, selector: #selector(handleUndoRequested), name: .iTextUndoRequested, object: nil)
+            nc.addObserver(self, selector: #selector(handleRedoRequested), name: .iTextRedoRequested, object: nil)
         }
 
         deinit {
@@ -155,6 +207,24 @@ public struct MacTextEditor: NSViewRepresentable {
         @objc private func handleFormatHeading3() {
             guard isWindowActive else { return }
             applyHeadingPrefix(level: 3)
+        }
+
+        @objc private func handleUndoRequested() {
+            guard isWindowActive, let tv = textView else { return }
+            if let um = tv.undoManager, um.canUndo {
+                um.undo()
+            } else if let win = tv.window, win.undoManager?.canUndo == true {
+                win.undoManager?.undo()
+            }
+        }
+
+        @objc private func handleRedoRequested() {
+            guard isWindowActive, let tv = textView else { return }
+            if let um = tv.undoManager, um.canRedo {
+                um.redo()
+            } else if let win = tv.window, win.undoManager?.canRedo == true {
+                win.undoManager?.redo()
+            }
         }
 
         private var isWindowActive: Bool {
