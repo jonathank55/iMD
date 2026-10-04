@@ -11,7 +11,7 @@ Schlanker, minimalistischer und hochstabiler Text- & Markdown-Editor für macOS 
 - **Eigene native Typst-Druckfunktion (⌘P):** Druckt das Dokument verlustfrei über die integrierte Typst-Engine. Berücksichtigt sämtliche Benutzereinstellungen wie Schriftart, Schriftgröße, Zeilenabstand, Blocksatz und Silbentrennung mit großzügigen, buchgleichen Rändern.
 - **Anpassbarer Zeilenabstand:** Stufenlose und menügeführte Justierung des Zeilenabstands für ein ermüdungsfreies Schriftbild (Kompakt bis Doppelt, Standard: 3 pt).
 - **Markdown als Standardformat (.md):** Neu erstellte Dokumente werden standardmäßig mit der Dateiendung `.md` vorgeschlagen. Reiner Text (`.txt`) steht im Speicherndialog jederzeit als alternative Option zur Wahl.
-- **Obsidian-Live-Vorschau:** In `.md`-Dokumenten werden Steuerzeichen (`#`, `**`, `*`, `~~`, `` ` ``) im Lesemodus unsichtbar ausgeblendet und typografisch veredelt dargestellt. Direkt beim Hineinsetzen des Cursors treten die Steuerzeichen zur präzisen Bearbeitung hervor.
+- **Markdown-Live-Vorschau:** In `.md`-Dokumenten werden Steuerzeichen (`#`, `**`, `*`, `~~`, `` ` ``) im Lesemodus unsichtbar ausgeblendet und typografisch veredelt dargestellt. Direkt beim Hineinsetzen des Cursors treten die Steuerzeichen zur präzisen Bearbeitung hervor.
 - **Echte Plain-Text-Disziplin:** `.txt`-Dateien werden ohne jegliche Interpretation oder Formatierungsballast als unverfälschter Text verarbeitet.
 - **Typografischer Feinschliff:** Blocksatz mit homogenem Randausgleich und Apples nativer Silbentrennungs-Engine garantieren ein sauberes Schriftbild nach Typst-Vorbild.
 - **Persistente JSON-Konfiguration:** Sämtliche Typografie-, Layout- und Formateinstellungen werden automatisch und atomar in `~/.config/iText/config.json` gesichert.

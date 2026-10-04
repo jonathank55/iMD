@@ -86,7 +86,7 @@ public struct SettingsView: View {
 
                 Toggle("Blocksatz", isOn: $settings.isJustified)
                 Toggle("Automatische Silbentrennung", isOn: $settings.isHyphenationEnabled)
-                Toggle("Obsidian Live-Vorschau", isOn: $settings.isMarkdownHighlightingEnabled)
+                Toggle("Markdown Live-Vorschau", isOn: $settings.isMarkdownHighlightingEnabled)
             }
 
             Divider()
