@@ -1,4 +1,3 @@
-#if os(macOS)
 import AppKit
 
 public final class MacFontManager: NSObject {
@@ -13,4 +12,3 @@ public final class MacFontManager: NSObject {
         NSFontManager.shared.orderFrontFontPanel(nil)
     }
 }
-#endif

@@ -7,53 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		128F0C8F9A1247A89493401A /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F873065B1D6A008FA88D675 /* Commands.swift */; };
-		141928BBE846E14A79D85824 /* PlainTextDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */; };
-		1775DF8D887B8DF4C46A7FE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7470C11A9DD13297293DB73E /* Assets.xcassets */; };
-		1CA44C23E5B8335037055916 /* PlainTextDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */; };
-		296332426687D8FB536DCA5F /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F873065B1D6A008FA88D675 /* Commands.swift */; };
-		334FE4496C21E5EDDF1CEB31 /* IOSFontPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */; };
-		37D2C7EF84EBF0BAA277B522 /* EditorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38539A6E8E811D5901A9842 /* EditorSettings.swift */; };
-		3C5C8ADFCA6D0607BB576F72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74CDE991B52F98B14D33C0 /* ContentView.swift */; };
-		419E4F8D744A2236839F1685 /* MacTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349253DACCCDC729C9E11395 /* MacTextEditor.swift */; };
-		44C0873F99FB47CF2F30234E /* IOSTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C6A0CA395A32BDB18514D /* IOSTextEditor.swift */; };
-		4D97692F74A248A6FCEDC616 /* MarkdownHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D4430D0C6AF4A25878C3132 /* MarkdownHighlighter.swift */; };
-		542A4C79C1EB8CC9ACF6CCC9 /* IOSFontPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */; };
-		74B1ACD574A34C9FBC1036B6 /* MarkdownHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D4430D0C6AF4A25878C3132 /* MarkdownHighlighter.swift */; };
-		84A963CA6F8EC7E06A482BA4 /* MacFontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A27A9E2D91C1B7468ABFE5 /* MacFontManager.swift */; };
-		95188D46BCBFA9BC718074E1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B2DF7A9533B27BC4274DF8 /* SettingsView.swift */; };
-		A3415B11DDFB424B587EDBAB /* MacTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349253DACCCDC729C9E11395 /* MacTextEditor.swift */; };
-		ADE00D9C44EE87C737F13F7A /* IOSToolbarAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D840380A913E27F14218D0D5 /* IOSToolbarAccessory.swift */; };
-		ADE22CEB6ED3B2B6A580690D /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1F4287A535BCA5E53AF470 /* EditorView.swift */; };
-		B5A650F6ECF48A7D0958C809 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7470C11A9DD13297293DB73E /* Assets.xcassets */; };
-		B71DFB134FA51E1F1313FEEC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74CDE991B52F98B14D33C0 /* ContentView.swift */; };
-		CB2FB106FE33FAC8B59D37EE /* iTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9359C5FBF0E6E6819DEFC1B /* iTextApp.swift */; };
-		D5F71F853E27021FD805A0EA /* IOSTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C6A0CA395A32BDB18514D /* IOSTextEditor.swift */; };
-		D65F461AD02353BE383011BE /* iTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9359C5FBF0E6E6819DEFC1B /* iTextApp.swift */; };
-		DD610C766C39E35FFB171B9B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B2DF7A9533B27BC4274DF8 /* SettingsView.swift */; };
-		E609CF60B9F8AE832F725E6C /* EditorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38539A6E8E811D5901A9842 /* EditorSettings.swift */; };
-		E8169C710A41464EC8A8AE34 /* IOSToolbarAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D840380A913E27F14218D0D5 /* IOSToolbarAccessory.swift */; };
-		F2F367CD563E1F053B51679B /* MacFontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A27A9E2D91C1B7468ABFE5 /* MacFontManager.swift */; };
-		F89A240AF02A82286B565172 /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1F4287A535BCA5E53AF470 /* EditorView.swift */; };
+		0E085C02CADB81167876FE14 /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F873065B1D6A008FA88D675 /* Commands.swift */; };
+		2F6906E9333522F3D949D4C9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7470C11A9DD13297293DB73E /* Assets.xcassets */; };
+		4B1B64BC71BD170EBEFC1A0A /* EditorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38539A6E8E811D5901A9842 /* EditorSettings.swift */; };
+		552829B71503894F74941DD4 /* MacTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349253DACCCDC729C9E11395 /* MacTextEditor.swift */; };
+		5A14C4B95E8CE8E11323CFFB /* MacFontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A27A9E2D91C1B7468ABFE5 /* MacFontManager.swift */; };
+		7AEBE5C614197205F5604A62 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74CDE991B52F98B14D33C0 /* ContentView.swift */; };
+		817B13D25543785F35D18995 /* PlainTextDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */; };
+		A59431E87B4D8BBF3FBA419F /* iTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9359C5FBF0E6E6819DEFC1B /* iTextApp.swift */; };
+		D881CF38D91B92A2B8ECD4D7 /* PrintService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95FD4647E9B6A254054B45 /* PrintService.swift */; };
+		ED1B67FF8DAE4678D7B23AC2 /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1F4287A535BCA5E53AF470 /* EditorView.swift */; };
+		F0896BBC45578F4006965310 /* MarkdownHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D4430D0C6AF4A25878C3132 /* MarkdownHighlighter.swift */; };
+		F9A93DB825D7B8B3CA8EBD99 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B2DF7A9533B27BC4274DF8 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		115C6A0CA395A32BDB18514D /* IOSTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSTextEditor.swift; sourceTree = "<group>"; };
-		2A2AAF8EB88A74C1E44F1716 /* iText-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "iText-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E74CDE991B52F98B14D33C0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		349253DACCCDC729C9E11395 /* MacTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacTextEditor.swift; sourceTree = "<group>"; };
-		56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSFontPicker.swift; sourceTree = "<group>"; };
 		59B2DF7A9533B27BC4274DF8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		5CDE7941719AED7371F223EC /* iText.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iText.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B1F4287A535BCA5E53AF470 /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
 		7470C11A9DD13297293DB73E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		77A27A9E2D91C1B7468ABFE5 /* MacFontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacFontManager.swift; sourceTree = "<group>"; };
-		825A6120642702FCB42C61BD /* iText-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iText-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D4430D0C6AF4A25878C3132 /* MarkdownHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownHighlighter.swift; sourceTree = "<group>"; };
 		8F873065B1D6A008FA88D675 /* Commands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commands.swift; sourceTree = "<group>"; };
 		A38539A6E8E811D5901A9842 /* EditorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorSettings.swift; sourceTree = "<group>"; };
 		B9359C5FBF0E6E6819DEFC1B /* iTextApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iTextApp.swift; sourceTree = "<group>"; };
 		C725A188DE5412984CFD7E9B /* PlainTextDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextDocument.swift; sourceTree = "<group>"; };
-		D840380A913E27F14218D0D5 /* IOSToolbarAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSToolbarAccessory.swift; sourceTree = "<group>"; };
+		CE95FD4647E9B6A254054B45 /* PrintService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -79,20 +60,9 @@
 		2A6A05F61A297D1E5109D92E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2A2AAF8EB88A74C1E44F1716 /* iText-iOS.app */,
-				825A6120642702FCB42C61BD /* iText-macOS.app */,
+				5CDE7941719AED7371F223EC /* iText.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		4EE05E7599AD499722BF687B /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				56ADBB99370D6B3B3189BCE4 /* IOSFontPicker.swift */,
-				115C6A0CA395A32BDB18514D /* IOSTextEditor.swift */,
-				D840380A913E27F14218D0D5 /* IOSToolbarAccessory.swift */,
-			);
-			path = iOS;
 			sourceTree = "<group>";
 		};
 		4EE0AEB87AFBD3979986ABC6 /* Model */ = {
@@ -124,7 +94,6 @@
 		722B383E7DEE7C5F8CCCC6B2 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
-				4EE05E7599AD499722BF687B /* iOS */,
 				1E3278100A06B72CE1D42532 /* macOS */,
 			);
 			path = Platform;
@@ -136,10 +105,19 @@
 				5189F6C8D2ABDA6E9FE83238 /* App */,
 				4EE0AEB87AFBD3979986ABC6 /* Model */,
 				722B383E7DEE7C5F8CCCC6B2 /* Platform */,
+				C791D04D2F0537418FB46312 /* Print */,
 				5AA2C77800A447C7138BADDD /* Syntax */,
 				080F8DD06867BE080CB6BDC8 /* Views */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		C791D04D2F0537418FB46312 /* Print */ = {
+			isa = PBXGroup;
+			children = (
+				CE95FD4647E9B6A254054B45 /* PrintService.swift */,
+			);
+			path = Print;
 			sourceTree = "<group>";
 		};
 		EB0443014900752273107BDC = {
@@ -154,40 +132,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0BE043C487C59141423D230C /* iText-macOS */ = {
+		F644E6BD216EFC0E02041F22 /* iText */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AE1E8A1DE356B0BB85C83BB8 /* Build configuration list for PBXNativeTarget "iText-macOS" */;
+			buildConfigurationList = B363486248C4DFD40EE37B05 /* Build configuration list for PBXNativeTarget "iText" */;
 			buildPhases = (
-				D47E81AABAC5170E82686A79 /* Sources */,
-				051134070C3F374D18FCA3AC /* Resources */,
+				7044DDF53923A8180FC78ED7 /* Sources */,
+				1609B44CD3B92D1B7FA82FC5 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "iText-macOS";
+			name = iText;
 			packageProductDependencies = (
 			);
-			productName = "iText-macOS";
-			productReference = 825A6120642702FCB42C61BD /* iText-macOS.app */;
-			productType = "com.apple.product-type.application";
-		};
-		FBAF291EB63495E1DE906580 /* iText-iOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0572BBC1FF55BFC871FC0912 /* Build configuration list for PBXNativeTarget "iText-iOS" */;
-			buildPhases = (
-				C7A2EB18E407D8AD02573C91 /* Sources */,
-				C52C47E58F6D0320E5CB887F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "iText-iOS";
-			packageProductDependencies = (
-			);
-			productName = "iText-iOS";
-			productReference = 2A2AAF8EB88A74C1E44F1716 /* iText-iOS.app */;
+			productName = iText;
+			productReference = 5CDE7941719AED7371F223EC /* iText.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -215,75 +175,62 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0BE043C487C59141423D230C /* iText-macOS */,
-				FBAF291EB63495E1DE906580 /* iText-iOS */,
+				F644E6BD216EFC0E02041F22 /* iText */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		051134070C3F374D18FCA3AC /* Resources */ = {
+		1609B44CD3B92D1B7FA82FC5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5A650F6ECF48A7D0958C809 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C52C47E58F6D0320E5CB887F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				1775DF8D887B8DF4C46A7FE6 /* Assets.xcassets in Resources */,
+				2F6906E9333522F3D949D4C9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C7A2EB18E407D8AD02573C91 /* Sources */ = {
+		7044DDF53923A8180FC78ED7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				296332426687D8FB536DCA5F /* Commands.swift in Sources */,
-				B71DFB134FA51E1F1313FEEC /* ContentView.swift in Sources */,
-				E609CF60B9F8AE832F725E6C /* EditorSettings.swift in Sources */,
-				F89A240AF02A82286B565172 /* EditorView.swift in Sources */,
-				542A4C79C1EB8CC9ACF6CCC9 /* IOSFontPicker.swift in Sources */,
-				D5F71F853E27021FD805A0EA /* IOSTextEditor.swift in Sources */,
-				E8169C710A41464EC8A8AE34 /* IOSToolbarAccessory.swift in Sources */,
-				84A963CA6F8EC7E06A482BA4 /* MacFontManager.swift in Sources */,
-				419E4F8D744A2236839F1685 /* MacTextEditor.swift in Sources */,
-				4D97692F74A248A6FCEDC616 /* MarkdownHighlighter.swift in Sources */,
-				1CA44C23E5B8335037055916 /* PlainTextDocument.swift in Sources */,
-				95188D46BCBFA9BC718074E1 /* SettingsView.swift in Sources */,
-				CB2FB106FE33FAC8B59D37EE /* iTextApp.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D47E81AABAC5170E82686A79 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				128F0C8F9A1247A89493401A /* Commands.swift in Sources */,
-				3C5C8ADFCA6D0607BB576F72 /* ContentView.swift in Sources */,
-				37D2C7EF84EBF0BAA277B522 /* EditorSettings.swift in Sources */,
-				ADE22CEB6ED3B2B6A580690D /* EditorView.swift in Sources */,
-				334FE4496C21E5EDDF1CEB31 /* IOSFontPicker.swift in Sources */,
-				44C0873F99FB47CF2F30234E /* IOSTextEditor.swift in Sources */,
-				ADE00D9C44EE87C737F13F7A /* IOSToolbarAccessory.swift in Sources */,
-				F2F367CD563E1F053B51679B /* MacFontManager.swift in Sources */,
-				A3415B11DDFB424B587EDBAB /* MacTextEditor.swift in Sources */,
-				74B1ACD574A34C9FBC1036B6 /* MarkdownHighlighter.swift in Sources */,
-				141928BBE846E14A79D85824 /* PlainTextDocument.swift in Sources */,
-				DD610C766C39E35FFB171B9B /* SettingsView.swift in Sources */,
-				D65F461AD02353BE383011BE /* iTextApp.swift in Sources */,
+				0E085C02CADB81167876FE14 /* Commands.swift in Sources */,
+				7AEBE5C614197205F5604A62 /* ContentView.swift in Sources */,
+				4B1B64BC71BD170EBEFC1A0A /* EditorSettings.swift in Sources */,
+				ED1B67FF8DAE4678D7B23AC2 /* EditorView.swift in Sources */,
+				5A14C4B95E8CE8E11323CFFB /* MacFontManager.swift in Sources */,
+				552829B71503894F74941DD4 /* MacTextEditor.swift in Sources */,
+				F0896BBC45578F4006965310 /* MarkdownHighlighter.swift in Sources */,
+				817B13D25543785F35D18995 /* PlainTextDocument.swift in Sources */,
+				D881CF38D91B92A2B8ECD4D7 /* PrintService.swift in Sources */,
+				F9A93DB825D7B8B3CA8EBD99 /* SettingsView.swift in Sources */,
+				A59431E87B4D8BBF3FBA419F /* iTextApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		4B963B57E6D970D1F7CBDF97 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Configuration/iText-macOS.entitlements";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "Configuration/Info-macOS.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonathan.iText;
+				PRODUCT_NAME = iText;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
 		863C8929A32EE349EBF0BC3A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -336,13 +283,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -395,75 +342,19 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
 		};
-		AE211FDA7815E4DD54085BA9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Configuration/iText-iOS.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonathan.iText;
-				PRODUCT_NAME = iText;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		B2F06B4D5BDDD2D34F2C2F40 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Configuration/iText-iOS.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonathan.iText;
-				PRODUCT_NAME = iText;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		C62B399702FD7D37DED637A2 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Configuration/iText-macOS.entitlements";
-				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "Configuration/Info-macOS.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonathan.iText;
-				PRODUCT_NAME = iText;
-				SDKROOT = macosx;
-			};
-			name = Debug;
-		};
-		F0E5B09D88C2987B29EC8AF0 /* Release */ = {
+		E255ED0AA4E9690D985D2E04 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -484,15 +375,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0572BBC1FF55BFC871FC0912 /* Build configuration list for PBXNativeTarget "iText-iOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B2F06B4D5BDDD2D34F2C2F40 /* Debug */,
-				AE211FDA7815E4DD54085BA9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 		7A148875123AE687C295BA82 /* Build configuration list for PBXProject "iText" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -502,11 +384,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		AE1E8A1DE356B0BB85C83BB8 /* Build configuration list for PBXNativeTarget "iText-macOS" */ = {
+		B363486248C4DFD40EE37B05 /* Build configuration list for PBXNativeTarget "iText" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C62B399702FD7D37DED637A2 /* Debug */,
-				F0E5B09D88C2987B29EC8AF0 /* Release */,
+				4B963B57E6D970D1F7CBDF97 /* Debug */,
+				E255ED0AA4E9690D985D2E04 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

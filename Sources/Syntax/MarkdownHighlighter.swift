@@ -1,14 +1,7 @@
-import Foundation
-
-#if os(iOS)
-import UIKit
-public typealias PlatformFont = UIFont
-public typealias PlatformColor = UIColor
-#elseif os(macOS)
 import AppKit
+
 public typealias PlatformFont = NSFont
 public typealias PlatformColor = NSColor
-#endif
 
 public final class MarkdownHighlighter {
     public static let shared = MarkdownHighlighter()
@@ -22,28 +15,6 @@ public final class MarkdownHighlighter {
         italic: Bool = false,
         mono: Bool = false
     ) -> PlatformFont {
-        #if os(iOS)
-        if mono {
-            return UIFont.monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
-        }
-        var traits: UIFontDescriptor.SymbolicTraits = []
-        if bold { traits.insert(.traitBold) }
-        if italic { traits.insert(.traitItalic) }
-
-        let targetFamily = (family.isEmpty || family == "System" || family == ".AppleSystemUIFont") ? "" : family
-        if !targetFamily.isEmpty, let base = UIFont(name: targetFamily, size: size) {
-            if !traits.isEmpty, let desc = base.fontDescriptor.withSymbolicTraits(traits) {
-                return UIFont(descriptor: desc, size: size)
-            }
-            return base
-        }
-
-        let sys = UIFont.systemFont(ofSize: size)
-        if !traits.isEmpty, let desc = sys.fontDescriptor.withSymbolicTraits(traits) {
-            return UIFont(descriptor: desc, size: size)
-        }
-        return bold ? UIFont.boldSystemFont(ofSize: size) : (italic ? UIFont.italicSystemFont(ofSize: size) : sys)
-        #elseif os(macOS)
         if mono {
             return NSFont.monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
         }
@@ -63,7 +34,6 @@ public final class MarkdownHighlighter {
             base = NSFontManager.shared.convert(base, toHaveTrait: mask)
         }
         return base
-        #endif
     }
 
     public static func makeParagraphStyle(isJustified: Bool, isHyphenationEnabled: Bool) -> NSMutableParagraphStyle {
@@ -91,17 +61,10 @@ public final class MarkdownHighlighter {
         let regularFont = Self.resolveFont(family: fontFamily, size: fontSize)
         let paragraphStyle = Self.makeParagraphStyle(isJustified: isJustified, isHyphenationEnabled: isHyphenationEnabled)
 
-        #if os(iOS)
-        let textColor = UIColor.label
-        let hiddenColor = UIColor.clear
-        let codeBgColor = UIColor.systemGray.withAlphaComponent(0.15)
-        let secondaryColor = UIColor.secondaryLabel
-        #elseif os(macOS)
         let textColor = NSColor.labelColor
         let hiddenColor = NSColor.clear
         let codeBgColor = NSColor.quaternaryLabelColor
         let secondaryColor = NSColor.secondaryLabelColor
-        #endif
 
         attributed.addAttribute(.font, value: regularFont, range: fullRange)
         attributed.addAttribute(.foregroundColor, value: textColor, range: fullRange)

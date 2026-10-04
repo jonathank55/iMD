@@ -12,11 +12,6 @@ public struct EditorView: View {
     }
 
     public var body: some View {
-        #if os(iOS)
-        IOSTextEditor(text: $text, isMarkdown: isMarkdown, settings: settings)
-            .edgesIgnoringSafeArea(.bottom)
-        #elseif os(macOS)
         MacTextEditor(text: $text, isMarkdown: isMarkdown, settings: settings)
-        #endif
     }
 }

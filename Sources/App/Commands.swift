@@ -1,11 +1,22 @@
 import SwiftUI
 
+extension Notification.Name {
+    public static let iTextPrintRequested = Notification.Name("iTextPrintRequested")
+}
+
 public struct iTextCommands: Commands {
     @ObservedObject private var settings = EditorSettings.shared
 
     public init() {}
 
     public var body: some Commands {
+        CommandGroup(replacing: .printItem) {
+            Button("Drucken…") {
+                NotificationCenter.default.post(name: .iTextPrintRequested, object: nil)
+            }
+            .keyboardShortcut("p", modifiers: .command)
+        }
+
         CommandMenu("Formatierung") {
             Button("Schrift vergrößern") {
                 settings.zoomIn()
@@ -28,14 +39,12 @@ public struct iTextCommands: Commands {
             Toggle("Automatische Silbentrennung", isOn: $settings.isHyphenationEnabled)
             Toggle("Obsidian-Markdown-Vorschau", isOn: $settings.isMarkdownHighlightingEnabled)
 
-            #if os(macOS)
             Divider()
 
             Button("Schriften einblenden…") {
                 MacFontManager.shared.showFontPanel()
             }
             .keyboardShortcut("t", modifiers: .command)
-            #endif
         }
     }
 }

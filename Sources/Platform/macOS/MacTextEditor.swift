@@ -1,4 +1,3 @@
-#if os(macOS)
 import SwiftUI
 import AppKit
 
@@ -158,4 +157,3 @@ public struct MacTextEditor: NSViewRepresentable {
         }
     }
 }
-#endif
